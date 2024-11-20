@@ -13,8 +13,8 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Binance API anahtarlarınızı buraya ekleyin
-api_key = ""
-secret_key = ""
+api_key = "AhXe1renGVWgAKMX4gup2UWqF4n0XTpoyrXwYZCy2m60BGVe5x7wyiMweBpRSGLo"
+secret_key = "2B3AgEpYaQOwLEQPq04Hq017F5i6ElzbEK6D9sdkcUg09RedJf96IoIuTf80hVrG"
 testnet = True
 
 client = Client(api_key=api_key, api_secret=secret_key)
