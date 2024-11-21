@@ -17,8 +17,16 @@
           <td :class="{ buy: trade.action === 'Buy', sell: trade.action === 'Sell' }">
             {{ trade.action }}
           </td>
-          <td>{{ trade.price.toFixed(2) }}</td>
-          <td>{{ trade.amount.toFixed(4) }}</td>
+          <!-- Check if price is defined before using toFixed -->
+          <td>
+            {{ trade.price !== undefined && trade.price !== null ? trade.price.toFixed(2) : 'N/A' }}
+          </td>
+          <!-- Check if amount is defined before using toFixed -->
+          <td>
+            {{
+              trade.amount !== undefined && trade.amount !== null ? trade.amount.toFixed(4) : 'N/A'
+            }}
+          </td>
           <td>{{ trade.indicator }}</td>
         </tr>
       </tbody>

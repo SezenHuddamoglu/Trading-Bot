@@ -12,9 +12,11 @@
       <tbody>
         <tr v-for="coin in coins" :key="coin.symbol">
           <td>{{ coin.symbol }}</td>
-          <td>{{ coin.price.toFixed(2) }}</td>
+          <td>{{ (coin.price || 0).toFixed(2) }}</td>
+          <!-- price kontrolü -->
           <td :class="{ up: coin.change > 0, down: coin.change < 0 }">
-            {{ coin.change.toFixed(2) }}%
+            {{ (coin.change || 0).toFixed(2) }}%
+            <!-- change kontrolü -->
           </td>
         </tr>
       </tbody>
