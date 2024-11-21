@@ -7,7 +7,20 @@
 
 <script lang="ts">
 import { ref, onMounted } from 'vue'
-import { Chart, ChartConfiguration, ChartTypeRegistry } from 'chart.js' // Import necessary types
+import {
+  Chart,
+  ChartConfiguration,
+  LineController,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  Title,
+  Tooltip,
+  Legend,
+  PointElement, // PointElement'i de dahil edin
+  ChartTypeRegistry,
+} from 'chart.js' // Gerekli türleri içe aktar
+
 import api from '../services/api'
 
 // Trade tipi
@@ -30,7 +43,14 @@ export default {
     const fetchTrades = async () => {
       try {
         const response = await api.get('/trades')
-        trades.value = response.data
+        console.log('API Response:', response.data) // API'nin doğru veri döndürdüğünü kontrol et
+        if (response.data && response.data.message) {
+          // Eğer sadece message döndüyse, ek bir hata mesajı verebilirsiniz.
+          console.log('API Error:', response.data.message)
+        } else {
+          // Doğru veri geldiyse, trades state'ine veri aktar
+          trades.value = response.data
+        }
       } catch (error) {
         console.error('İşlem geçmişi alınamadı:', error)
       }
@@ -87,7 +107,20 @@ export default {
     })
 
     // Grafik oluşturulması
-    onMounted(createChart)
+    onMounted(() => {
+      // Chart.js bileşenlerini kaydedin
+      Chart.register(
+        LineController,
+        LineElement,
+        CategoryScale,
+        LinearScale,
+        Title,
+        Tooltip,
+        Legend,
+        PointElement, // PointElement'i de kaydediyoruz
+      )
+      createChart()
+    })
 
     return { trades, formatDate, chartCanvas }
   },
