@@ -1,18 +1,21 @@
 from fastapi import APIRouter
-from app.trading import get_current_prices, get_trade_history
+import logging
+from app.trading import get_trade_history, get_current_prices  # trading.py'den fonksiyonları import et
 
-router = APIRouter()
+api_router = APIRouter()
 
-@router.get("/coins")
-def read_coins():
-    # """
-    # Anlık coin fiyatlarını döner.
-    # """
-    return get_current_prices()
+# Logger ayarları
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-@router.get("/trades")
-def read_trades():
-    # """
-    # Yapılan alım-satım işlemlerini döner.
-    # """
-    return get_trade_history()
+@api_router.get("/trades")
+def get_trades():
+    trades = get_trade_history()  # Binance'den alınan ticaret geçmişini al
+    logger.info(f"Trades data: {trades}")  # Loglama
+    return {"trades": trades}  # Ticaret geçmişini döndür
+
+@api_router.get("/coins")
+def get_coins():
+    prices = get_current_prices()  # Binance'den alınan güncel fiyatları al
+    logger.info(f"Coins data: {prices}")  # Loglama
+    return {"coins": prices}  # Coin fiyatlarını döndür
