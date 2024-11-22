@@ -17,11 +17,9 @@
           <td :class="{ buy: trade.action === 'Buy', sell: trade.action === 'Sell' }">
             {{ trade.action }}
           </td>
-          <!-- Check if price is defined before using toFixed -->
           <td>
             {{ trade.price !== undefined && trade.price !== null ? trade.price.toFixed(2) : 'N/A' }}
           </td>
-          <!-- Check if amount is defined before using toFixed -->
           <td>
             {{
               trade.amount !== undefined && trade.amount !== null ? trade.amount.toFixed(4) : 'N/A'
@@ -35,23 +33,24 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted } from 'vue'
 import api from '../services/api'
 import { Trade } from '../types/Trade'
 
 export default {
   name: 'TradeHistory',
-  setup() {
-    const trades = ref<Trade[]>([]) // trades dizisinin tipi belirleniyor
-
-    // Trades verisini almak için fetchTrades fonksiyonu
-    const fetchTrades = async () => {
+  data() {
+    return {
+      trades: [] as Trade[], // trades dizisini data içinde tanımladık
+    }
+  },
+  methods: {
+    async fetchTrades() {
       try {
         const response = await api.get('/trades')
         console.log('Gelen veri:', response.data)
 
         // `response.data.trades` dizisini alıyoruz
-        trades.value = response.data.trades.map((trade: any) => ({
+        this.trades = response.data.trades.map((trade: any) => ({
           action: trade.action,
           price: trade.price || 0,
           amount: trade.amount || 0,
@@ -61,21 +60,16 @@ export default {
       } catch (error) {
         console.error('İşlem geçmişi alınamadı:', error)
       }
-    }
+    },
 
-    // Date formatı, timestamp türü number olarak belirtiliyor
-    const formatDate = (timestamp: number) => {
+    formatDate(timestamp: number) {
       const date = new Date(timestamp)
       return date.toLocaleString()
-    }
-
-    // Veriyi düzenli aralıklarla güncelle
-    onMounted(() => {
-      fetchTrades()
-      setInterval(fetchTrades, 5000) // 5 saniyede bir
-    })
-
-    return { trades, formatDate }
+    },
+  },
+  mounted() {
+    this.fetchTrades()
+    setInterval(this.fetchTrades, 5000) // 5 saniyede bir verileri güncelle
   },
 }
 </script>

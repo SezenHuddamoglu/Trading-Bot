@@ -13,10 +13,8 @@
         <tr v-for="coin in coins" :key="coin.symbol">
           <td>{{ coin.symbol }}</td>
           <td>{{ (coin.price || 0).toFixed(2) }}</td>
-          <!-- price kontrolü -->
           <td :class="{ up: coin.change > 0, down: coin.change < 0 }">
             {{ (coin.change || 0).toFixed(2) }}%
-            <!-- change kontrolü -->
           </td>
         </tr>
       </tbody>
@@ -25,28 +23,24 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
 import api from '../services/api'
 import { Coin } from '../types/Coin'
 
 export default {
   name: 'CoinList',
-  setup() {
-    const coins = ref<Coin[]>([]) // Coin türünde bir dizi
-    let intervalId: number | null = null // Interval ID'yi saklama
-    watch(
-      () => coins.value,
-      (newValue) => {
-        console.log('Coin listesi güncellendi:', newValue)
-      },
-    )
-    const fetchCoins = async () => {
+  data() {
+    return {
+      coins: [] as Coin[], // Coin verisi burada saklanacak
+      intervalId: null as number | null, // interval ID
+    }
+  },
+  methods: {
+    async fetchCoins() {
       try {
         const response = await api.get('/coins')
         console.log('Gelen veri:', response.data)
 
-        // `response.data.coins` dizisini alıyoruz
-        coins.value = response.data.coins.map((item: any) => ({
+        this.coins = response.data.coins.map((item: any) => ({
           symbol: item.symbol,
           price: item.price || 0,
           change: item.change || 0,
@@ -54,20 +48,16 @@ export default {
       } catch (error) {
         console.error('Coin verisi alınamadı:', error)
       }
+    },
+  },
+  mounted() {
+    this.fetchCoins() // İlk veri çekme
+    this.intervalId = setInterval(this.fetchCoins, 5000) as unknown as number
+  },
+  beforeUnmount() {
+    if (this.intervalId !== null) {
+      clearInterval(this.intervalId) // Interval temizleme
     }
-
-    onMounted(() => {
-      fetchCoins()
-      intervalId = setInterval(fetchCoins, 5000) as unknown as number
-    })
-
-    onUnmounted(() => {
-      if (intervalId !== null) {
-        clearInterval(intervalId)
-      }
-    })
-
-    return { coins }
   },
 }
 </script>
