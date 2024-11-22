@@ -48,7 +48,16 @@ export default {
     const fetchTrades = async () => {
       try {
         const response = await api.get('/trades')
-        trades.value = response.data
+        console.log('Gelen veri:', response.data)
+
+        // `response.data.trades` dizisini alıyoruz
+        trades.value = response.data.trades.map((trade: any) => ({
+          action: trade.action,
+          price: trade.price || 0,
+          amount: trade.amount || 0,
+          timestamp: trade.timestamp || '',
+          indicator: trade.indicator || 'N/A', // Varsayılan değer ekleyebilirsiniz
+        }))
       } catch (error) {
         console.error('İşlem geçmişi alınamadı:', error)
       }

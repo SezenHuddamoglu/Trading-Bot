@@ -25,25 +25,32 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import api from '../services/api'
-
-// Define the Coin type
-interface Coin {
-  symbol: string
-  price: number
-  change: number
-}
+import { Coin } from '../types/Coin'
 
 export default {
   name: 'CoinList',
   setup() {
-    const coins = ref<Coin[]>([]) // Type the coins array
-
+    const coins = ref<Coin[]>([]) // Coin türünde bir dizi
+    let intervalId: number | null = null // Interval ID'yi saklama
+    watch(
+      () => coins.value,
+      (newValue) => {
+        console.log('Coin listesi güncellendi:', newValue)
+      },
+    )
     const fetchCoins = async () => {
       try {
         const response = await api.get('/coins')
-        coins.value = response.data
+        console.log('Gelen veri:', response.data)
+
+        // `response.data.coins` dizisini alıyoruz
+        coins.value = response.data.coins.map((item: any) => ({
+          symbol: item.symbol,
+          price: item.price || 0,
+          change: item.change || 0,
+        }))
       } catch (error) {
         console.error('Coin verisi alınamadı:', error)
       }
@@ -51,8 +58,13 @@ export default {
 
     onMounted(() => {
       fetchCoins()
-      // Veriyi düzenli aralıklarla güncelle
-      setInterval(fetchCoins, 5000) // 5 saniyede bir
+      intervalId = setInterval(fetchCoins, 5000) as unknown as number
+    })
+
+    onUnmounted(() => {
+      if (intervalId !== null) {
+        clearInterval(intervalId)
+      }
     })
 
     return { coins }
