@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import {
   Chart,
   ChartConfiguration,
@@ -18,19 +18,13 @@ import {
   Tooltip,
   Legend,
   PointElement, // PointElement'i de dahil edin
-  ChartTypeRegistry,
+  //ChartTypeRegistry,
 } from 'chart.js' // Gerekli türleri içe aktar
 
 import api from '../services/api'
+import { Trade } from '../types/Trade'
 
 // Trade tipi
-interface Trade {
-  timestamp: number
-  price: number
-  action: string
-  amount: number
-  indicator: string
-}
 
 export default {
   name: 'PriceChart',
@@ -43,14 +37,16 @@ export default {
     const fetchTrades = async () => {
       try {
         const response = await api.get('/trades')
-        console.log('API Response:', response.data) // API'nin doğru veri döndürdüğünü kontrol et
-        if (response.data && response.data.message) {
-          // Eğer sadece message döndüyse, ek bir hata mesajı verebilirsiniz.
-          console.log('API Error:', response.data.message)
-        } else {
-          // Doğru veri geldiyse, trades state'ine veri aktar
-          trades.value = response.data
-        }
+        console.log('Gelen veri:', response.data)
+
+        // `response.data.trades` dizisini alıyoruz
+        trades.value = response.data.trades.map((trade: any) => ({
+          action: trade.action,
+          price: trade.price || 0,
+          amount: trade.amount || 0,
+          timestamp: trade.timestamp || '',
+          indicator: trade.indicator || 'N/A', // Varsayılan değer ekleyebilirsiniz
+        }))
       } catch (error) {
         console.error('İşlem geçmişi alınamadı:', error)
       }
@@ -65,8 +61,12 @@ export default {
     // Grafik oluşturma fonksiyonu
     const createChart = () => {
       if (chartCanvas.value) {
-        const config: ChartConfiguration<keyof ChartTypeRegistry, number[], string> = {
-          type: 'line', // 'line' is valid as per ChartTypeRegistry
+        if (chartInstance) {
+          chartInstance.destroy()
+        }
+
+        const config: ChartConfiguration<'line', number[], string> = {
+          type: 'line',
           data: {
             labels: trades.value.map((trade) => formatDate(trade.timestamp)),
             datasets: [
@@ -88,24 +88,22 @@ export default {
           },
         }
 
-        // Eski chart varsa önceki grafiği yok et
-        if (chartInstance) {
-          chartInstance.destroy()
-        }
-
-        // Yeni chart oluştur
         chartInstance = new Chart(chartCanvas.value, config)
       }
     }
 
-    // Veriyi düzenli aralıklarla güncelle
+    let intervalId: number | null = null
+
     onMounted(() => {
       fetchTrades()
-      setInterval(() => {
-        fetchTrades()
-      }, 5000) // 5 saniyede bir güncelle
+      intervalId = setInterval(fetchTrades, 5000)
     })
 
+    onUnmounted(() => {
+      if (intervalId !== null) {
+        clearInterval(intervalId)
+      }
+    })
     // Grafik oluşturulması
     onMounted(() => {
       // Chart.js bileşenlerini kaydedin
