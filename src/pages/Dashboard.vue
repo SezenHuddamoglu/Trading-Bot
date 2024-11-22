@@ -2,8 +2,8 @@
 <template>
   <div>
     <CoinList />
-    <PriceChart />
     <TradeHistory />
+    <PriceChart />
   </div>
 </template>
 
