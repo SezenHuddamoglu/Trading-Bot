@@ -33,43 +33,21 @@
 </template>
 
 <script lang="ts">
-import api from '../services/api'
 import { Trade } from '../types/Trade'
 
 export default {
   name: 'TradeHistory',
-  data() {
-    return {
-      trades: [] as Trade[], // trades dizisini data içinde tanımladık
-    }
+  props: {
+    trades: {
+      type: Array as () => Trade[],
+      required: true,
+    },
   },
   methods: {
-    async fetchTrades() {
-      try {
-        const response = await api.get('/trades')
-        console.log('Gelen veri:', response.data)
-
-        // `response.data.trades` dizisini alıyoruz
-        this.trades = response.data.trades.map((trade: any) => ({
-          action: trade.action,
-          price: trade.price || 0,
-          amount: trade.amount || 0,
-          timestamp: trade.timestamp || '',
-          indicator: trade.indicator || 'N/A', // Varsayılan değer ekleyebilirsiniz
-        }))
-      } catch (error) {
-        console.error('İşlem geçmişi alınamadı:', error)
-      }
-    },
-
     formatDate(timestamp: number) {
       const date = new Date(timestamp)
       return date.toLocaleString()
     },
-  },
-  mounted() {
-    this.fetchTrades()
-    setInterval(this.fetchTrades, 5000) // 5 saniyede bir verileri güncelle
   },
 }
 </script>

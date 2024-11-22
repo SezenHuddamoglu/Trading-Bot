@@ -23,41 +23,15 @@
 </template>
 
 <script lang="ts">
-import api from '../services/api'
 import { Coin } from '../types/Coin'
 
 export default {
   name: 'CoinList',
-  data() {
-    return {
-      coins: [] as Coin[], // Coin verisi burada saklanacak
-      intervalId: null as number | null, // interval ID
-    }
-  },
-  methods: {
-    async fetchCoins() {
-      try {
-        const response = await api.get('/coins')
-        console.log('Gelen veri:', response.data)
-
-        this.coins = response.data.coins.map((item: any) => ({
-          symbol: item.symbol,
-          price: item.price || 0,
-          change: item.change || 0,
-        }))
-      } catch (error) {
-        console.error('Coin verisi alınamadı:', error)
-      }
+  props: {
+    coins: {
+      type: Array as () => Coin[],
+      required: true,
     },
-  },
-  mounted() {
-    this.fetchCoins() // İlk veri çekme
-    this.intervalId = setInterval(this.fetchCoins, 5000) as unknown as number
-  },
-  beforeUnmount() {
-    if (this.intervalId !== null) {
-      clearInterval(this.intervalId) // Interval temizleme
-    }
   },
 }
 </script>

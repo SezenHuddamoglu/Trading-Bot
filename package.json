@@ -13,6 +13,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@types/chart.js": "^2.9.41",
     "axios": "^1.7.7",
     "chart.js": "^4.4.6",
     "pinia": "^2.2.6",
@@ -22,7 +23,6 @@
   "devDependencies": {
     "@tsconfig/node22": "^22.0.0",
     "@types/axios": "^0.9.36",
-    "@types/chart.js": "^2.9.41",
     "@types/node": "^22.9.0",
     "@vitejs/plugin-vue": "^5.1.4",
     "@vue/eslint-config-prettier": "^10.1.0",

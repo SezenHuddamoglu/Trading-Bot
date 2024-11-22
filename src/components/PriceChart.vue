@@ -16,80 +16,70 @@ import {
   Title,
   Tooltip,
   Legend,
-  PointElement, // PointElement'i de dahil edin
-} from 'chart.js' // Gerekli türleri içe aktar
-import api from '../services/api'
+  PointElement,
+} from 'chart.js'
 import { Trade } from '../types/Trade'
 
 export default {
   name: 'PriceChart',
+  props: {
+    trades: {
+      type: Array as () => Trade[],
+      required: true,
+    },
+  },
   data() {
     return {
-      trades: [] as Trade[], // trades dizisini data içinde tanımladık
-      chartInstance: null as Chart | null, // chartInstance için null kontrolü
+      chartInstance: null as Chart<'line', number[], string> | null,
     }
   },
   methods: {
-    async fetchTrades() {
-      try {
-        const response = await api.get('/trades')
-        console.log('Gelen veri:', response.data)
-
-        // `response.data.trades` dizisini alıyoruz
-        this.trades = response.data.trades.map((trade: any) => ({
-          action: trade.action,
-          price: trade.price || 0,
-          amount: trade.amount || 0,
-          timestamp: trade.timestamp || '',
-          indicator: trade.indicator || 'N/A',
-        }))
-      } catch (error) {
-        console.error('İşlem geçmişi alınamadı:', error)
-      }
-    },
-
-    formatDate(timestamp: number) {
-      const date = new Date(timestamp)
-      return date.toLocaleString()
-    },
-
     createChart() {
-      const chartCanvas = this.$refs.chartCanvas as HTMLCanvasElement
-      if (chartCanvas) {
-        if (this.chartInstance) {
-          this.chartInstance.destroy() // Eski grafik varsa yok et
-        }
+      const canvas = this.$refs.chartCanvas as HTMLCanvasElement
+      if (!canvas) return
 
-        const config: ChartConfiguration<'line', number[], string> = {
-          type: 'line',
-          data: {
-            labels: this.trades.map((trade) => this.formatDate(trade.timestamp)),
-            datasets: [
-              {
-                label: 'Fiyat',
-                data: this.trades.map((trade) => trade.price),
-                fill: false,
-                borderColor: 'blue',
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                position: 'top',
-              },
-            },
-          },
-        }
-
-        this.chartInstance = new Chart(chartCanvas, config)
+      // Eski grafik varsa yok et
+      if (this.chartInstance) {
+        this.chartInstance.destroy()
       }
+
+      // Grafik yapılandırması
+      const config: ChartConfiguration<'line', number[], string> = {
+        type: 'line',
+        data: {
+          labels: this.trades.map((trade) => new Date(trade.timestamp).toLocaleString()),
+          datasets: [
+            {
+              label: 'Fiyat',
+              data: this.trades.map((trade) => trade.price),
+              borderColor: 'blue',
+              fill: false,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+          },
+        },
+      }
+
+      // Yeni Chart.js örneği oluştur
+      this.chartInstance = new Chart(canvas, config)
+    },
+  },
+  watch: {
+    trades: {
+      handler() {
+        this.createChart() // trades değiştiğinde grafiği güncelle
+      },
+      deep: true,
+      immediate: true,
     },
   },
   mounted() {
-    this.fetchTrades()
-    setInterval(this.fetchTrades, 5000) // 5 saniyede bir verileri güncelle
+    // Chart.js bileşenlerini kaydet
     Chart.register(
       LineController,
       LineElement,
@@ -100,7 +90,13 @@ export default {
       Legend,
       PointElement,
     )
-    this.createChart()
+    this.createChart() // İlk grafik oluştur
+  },
+  beforeUnmount() {
+    // Grafik örneğini yok et
+    if (this.chartInstance) {
+      this.chartInstance.destroy()
+    }
   },
 }
 </script>
