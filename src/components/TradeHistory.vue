@@ -99,16 +99,21 @@ table {
   border-collapse: collapse;
   margin-top: 20px;
 }
-th,
+
+th {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+  color:black;
+  background-color: #f2f2f2;
+}
 td {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: center;
+  color:white;
 }
-th {
-  background-color: #f2f2f2;
-}
-h2{
+h2 {
   color:#f2f2f2;
 }
 </style>

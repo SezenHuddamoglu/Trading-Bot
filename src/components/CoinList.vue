@@ -96,4 +96,8 @@ h2{
 th {
   background-color: #f2f2f2;
 }
+td{
+  color:white;
+}
+
 </style>

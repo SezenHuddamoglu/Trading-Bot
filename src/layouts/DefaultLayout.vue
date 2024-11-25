@@ -20,13 +20,14 @@ export default {
 
 <style scoped>
 header {
-  background-color: #282c34;
-  color: white;
+  background-color: #6c717a;
+  color: #06121e;
   padding: 1rem;
   text-align: center;
 }
 footer {
-  background-color: #f8f9fa;
+  background-color: #06121e;
+  color: whitesmoke;
   text-align: center;
   padding: 1rem;
   position: fixed;
@@ -34,6 +35,7 @@ footer {
   width: 100%;
 }
 main {
+  background-color:#06121e;
   padding: 2rem;
   margin-bottom: 60px; /* Footer için boşluk */
 }
