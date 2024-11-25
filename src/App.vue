@@ -26,6 +26,7 @@ export default {
 
 <style>
 body {
+  background-color: #06121e;
   font-family: 'Roboto', sans-serif; /* İstediğiniz fontu buraya ekleyin */
 }
 </style>
