@@ -101,12 +101,14 @@ def stopLoss(symbol):
     return stopVal
 
 def log_trade(action, price, amount, indicator):
+    global balance  # Global `balance` değişkenini kullanıyoruz
     trade = Trade(
         action=action,
         price=price,
         amount=amount,
         timestamp=datetime.now(timezone.utc),
-        indicator=indicator
+        indicator=indicator,
+        deposit=balance  # Balance'ı yeni alan olarak ekleyin
     )
     with data_lock:
         trade_history.append(trade)
