@@ -129,8 +129,23 @@ def update_current_prices():
 # app/trading.py (eklemeler)
 
 def get_current_prices():
-    with data_lock:
-        return [coin.dict() for coin in current_prices]
+    """
+    Binance API'sinden belirlenen coin'ler için güncel fiyatları ve değişim oranlarını alır.
+    """
+    target_coins = ["BNB", "BTC", "ETH", "DOGE", "SOL", "XRP"]
+    all_tickers = client.get_ticker()  # Binance'den tüm coin bilgilerini alır
+    filtered_data = [
+        {
+            "symbol": ticker["symbol"].replace("USDT", ""),  # "USDT" kısmını kaldır
+            "price": float(ticker["lastPrice"]),
+            "change": float(ticker["priceChangePercent"]) / 100  # Yüzdelik oranı ondalık hale getir
+        }
+        for ticker in all_tickers
+        if ticker["symbol"] in [f"{coin}USDT" for coin in target_coins]  # USDT çiftlerini filtrele
+    ]
+    return filtered_data
+
+
 
 def get_trade_history():
     with data_lock:
