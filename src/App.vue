@@ -25,5 +25,7 @@ export default {
 </script>
 
 <style>
-/* Genel stiller buraya eklenebilir */
+body {
+  font-family: 'Roboto', sans-serif; /* İstediğiniz fontu buraya ekleyin */
+}
 </style>
