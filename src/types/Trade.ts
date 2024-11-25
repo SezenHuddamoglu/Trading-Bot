@@ -5,4 +5,5 @@ export interface Trade {
   amount: number
   timestamp: number
   indicator: string
+  deposit:number
 }
