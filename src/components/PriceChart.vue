@@ -74,7 +74,10 @@ export default {
                 label: 'Fiyat',
                 data: trades.value.map((trade) => trade.price),
                 fill: false,
-                borderColor: 'blue',
+                borderColor: '#3498db', // Çizgi rengi
+                pointBackgroundColor: '#2ecc71', // Noktaların rengi
+                pointBorderColor: '#27ae60', // Nokta çerçeve rengi
+                pointRadius: 5, // Noktaların boyutu
               },
             ],
           },
@@ -83,10 +86,30 @@ export default {
             plugins: {
               legend: {
                 position: 'top',
+                labels: {
+                  color: '#ffffff', // Legend yazılarının rengi
+                },
+              },
+            },
+            scales: {
+              x: {
+                ticks: {
+                  color: '#f1c40f', // X ekseni yazı rengi
+                },
+              },
+              y: {
+                ticks: {
+                  color: 'yellow', // Y ekseni yazı rengi
+                },
+                grid: {
+                  color: 'rgba(255, 255, 255, 0.1)', // Y ekseni grid rengi
+                },
               },
             },
           },
         }
+
+
 
         chartInstance = new Chart(chartCanvas.value, config)
       }

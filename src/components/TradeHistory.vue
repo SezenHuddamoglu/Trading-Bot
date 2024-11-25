@@ -28,7 +28,9 @@
               trade.amount !== undefined && trade.amount !== null ? trade.amount.toFixed(4) : 'N/A'
             }}
           </td>
-          <td>{{ trade.indicator }}</td>
+          <td :class="'indicator-' + trade.indicator.toLowerCase()">
+            {{ trade.indicator }}
+          </td>
           <td>
             {{
               trade.deposit !== undefined && trade.deposit !== null ? trade.deposit.toFixed(4) : 'N/A'
@@ -100,6 +102,7 @@ table {
   margin-top: 20px;
 }
 
+
 th {
   border: 1px solid #ddd;
   padding: 8px;
@@ -115,5 +118,17 @@ td {
 }
 h2 {
   color:#f2f2f2;
+}
+.indicator-macd-based {
+  color: rgb(64, 99, 143); /* İstediğiniz renk */
+  /* font-weight: bold;  */
+}
+.indicator-rsi-based {
+  color: rgb(143, 113, 64); /* İstediğiniz renk */
+  /* font-weight: bold;  */
+}
+.indicator-bollingerband-based {
+  color: rgb(143, 113, 64); /* İstediğiniz renk */
+  /* font-weight: bold;  */
 }
 </style>
