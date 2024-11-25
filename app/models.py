@@ -13,3 +13,4 @@ class Trade(BaseModel):
     amount: float
     timestamp: datetime
     indicator: str  # "RSI", "MACD", vb.
+    deposit: float  
