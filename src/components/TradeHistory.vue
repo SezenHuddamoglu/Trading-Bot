@@ -28,12 +28,12 @@
               trade.amount !== undefined && trade.amount !== null ? trade.amount.toFixed(4) : 'N/A'
             }}
           </td>
-          <td :class="'indicator-' + trade.indicator.toLowerCase()">
-            {{ trade.indicator }}
-          </td>
+          <td>{{ trade.indicator }}</td>
           <td>
             {{
-              trade.deposit !== undefined && trade.deposit !== null ? trade.deposit.toFixed(4) : 'N/A'
+              trade.deposit !== undefined && trade.deposit !== null
+                ? trade.deposit.toFixed(4)
+                : 'N/A'
             }}
           </td>
         </tr>
@@ -43,48 +43,21 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted } from 'vue'
-import api from '../services/api'
 import { Trade } from '../types/Trade'
 
 export default {
   name: 'TradeHistory',
-  setup() {
-    const trades = ref<Trade[]>([]) // trades dizisinin tipi belirleniyor
-
-    // Trades verisini almak için fetchTrades fonksiyonu
-    const fetchTrades = async () => {
-      try {
-        const response = await api.get('/trades')
-        console.log('Gelen veri:', response.data)
-
-        // `response.data.trades` dizisini alıyoruz
-        trades.value = response.data.trades.map((trade: any) => ({
-          action: trade.action,
-          price: trade.price || 0,
-          amount: trade.amount || 0,
-          timestamp: trade.timestamp || '',
-          indicator: trade.indicator || 'N/A', // Varsayılan değer ekleyebilirsiniz
-          deposit: trade.deposit || 0, // Varsayılan değer ekleyebilirsiniz
-        }))
-      } catch (error) {
-        console.error('İşlem geçmişi alınamadı:', error)
-      }
-    }
-
-    // Date formatı, timestamp türü number olarak belirtiliyor
-    const formatDate = (timestamp: number) => {
+  props: {
+    trades: {
+      type: Array as () => Trade[],
+      required: true,
+    },
+  },
+  methods: {
+    formatDate(timestamp: number) {
       const date = new Date(timestamp)
       return date.toLocaleString()
-    }
-
-    // Veriyi düzenli aralıklarla güncelle
-    onMounted(() => {
-      fetchTrades()
-      setInterval(fetchTrades, 5000) // 5 saniyede bir
-    })
-
-    return { trades, formatDate }
+    },
   },
 }
 </script>
@@ -102,33 +75,20 @@ table {
   margin-top: 20px;
 }
 
-
 th {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: center;
-  color:black;
+  color: black;
   background-color: #f2f2f2;
 }
 td {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: center;
-  color:white;
+  color: white;
 }
 h2 {
-  color:#f2f2f2;
-}
-.indicator-macd-based {
-  color: rgb(64, 99, 143); /* İstediğiniz renk */
-  /* font-weight: bold;  */
-}
-.indicator-rsi-based {
-  color: rgb(143, 113, 64); /* İstediğiniz renk */
-  /* font-weight: bold;  */
-}
-.indicator-bollingerband-based {
-  color: rgb(143, 113, 64); /* İstediğiniz renk */
-  /* font-weight: bold;  */
+  color: #f2f2f2;
 }
 </style>

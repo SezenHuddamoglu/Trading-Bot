@@ -25,49 +25,15 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
-import api from '../services/api'
 import { Coin } from '../types/Coin'
 
 export default {
   name: 'CoinList',
-  setup() {
-    const coins = ref<Coin[]>([]) // Coin türünde bir dizi
-    let intervalId: number | null = null // Interval ID'yi saklama
-    watch(
-      () => coins.value,
-      (newValue) => {
-        console.log('Coin listesi güncellendi:', newValue)
-      },
-    )
-    const fetchCoins = async () => {
-      try {
-        const response = await api.get('/coins')
-        console.log('Gelen veri:', response.data)
-
-        // `response.data.coins` dizisini alıyoruz
-        coins.value = response.data.coins.map((item: any) => ({
-          symbol: item.symbol,
-          price: item.price || 0,
-          change: item.change || 0,
-        }))
-      } catch (error) {
-        console.error('Coin verisi alınamadı:', error)
-      }
-    }
-
-    onMounted(() => {
-      fetchCoins()
-      intervalId = setInterval(fetchCoins, 5000) as unknown as number
-    })
-
-    onUnmounted(() => {
-      if (intervalId !== null) {
-        clearInterval(intervalId)
-      }
-    })
-
-    return { coins }
+  props: {
+    coins: {
+      type: Array as () => Coin[],
+      required: true,
+    },
   },
 }
 </script>
@@ -90,14 +56,13 @@ td {
   padding: 8px;
   text-align: center;
 }
-h2{
-  color:#f2f2f2;
+h2 {
+  color: #f2f2f2;
 }
 th {
   background-color: #f2f2f2;
 }
-td{
-  color:white;
+td {
+  color: white;
 }
-
 </style>
