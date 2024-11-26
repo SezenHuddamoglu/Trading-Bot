@@ -29,7 +29,8 @@ export async function fetchTrades() {
       price: trade.price || 0,
       amount: trade.amount || 0,
       timestamp: trade.timestamp || '',
-      indicator: trade.indicator || 'N/A', // Varsayılan değer ekleyebilirsiniz
+      indicator: trade.indicator || 'N/A',
+      deposit: trade.deposit || 0, // Varsayılan değer ekleyebilirsiniz
     }))
   } catch (error) {
     console.error('fetchTrades başarısız:', error)
