@@ -2,6 +2,8 @@
   <div>
     <CoinList :coins="coins" />
     <TradeHistory :trades="trades" />
+    <!-- <PriceChart :trades="trades" /> -->
+    <ControlBar />
     <PriceChart :trades="trades" />
   </div>
 </template>
@@ -11,10 +13,11 @@ import { fetchCoins, fetchTrades } from '../services/api'
 import CoinList from '../components/CoinList.vue'
 import TradeHistory from '../components/TradeHistory.vue'
 import PriceChart from '../components/PriceChart.vue'
+import ControlBar from '../components/ControlBar.vue'
 
 export default {
   name: 'DashboardPage',
-  components: { CoinList, TradeHistory, PriceChart },
+  components: { CoinList, TradeHistory, PriceChart,ControlBar },
   data() {
     return {
       coins: [],
