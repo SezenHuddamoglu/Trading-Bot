@@ -1,7 +1,7 @@
 <template>
   <div class="control-bar-c">
     <!-- Coin Adı -->
-    <span>{{ coin }}</span>
+    <span class="coin-name">{{ coin }}</span>
 
     <!-- Indicator Dropdown -->
     <Dropdown
@@ -14,15 +14,15 @@
 
     <!-- Input Field for RSI -->
     <div class="input-field" v-if="selectedIndicator === 'RSI'">
-      <UIInput v-model="upper" label="upper" />
-      <UIInput v-model="lower" label="lower" />
+      <UIInput v-model="upper" label="Upper Bound:" />
+      <UIInput v-model="lower" label="Lower Bound: " />
     </div>
 
     <!-- Time Interval Dropdown -->
     <Dropdown
       class="dropdown"
       id="interval"
-      label="Time Intervals"
+      label="Time Interval"
       :options="intervals"
       v-model="selectedInterval"
     />
@@ -31,14 +31,14 @@
     <button class="update-button" @click="updateGraph">Update Graph</button>
 
     <!-- Ekranda Tüm Verileri Göster -->
-    <div class="model-display">
+    <!-- <div class="model-display">
       <h3>Selected Data:</h3>
       <p><strong>Coin:</strong> {{ coin }}</p>
       <p><strong>Indicator:</strong> {{ selectedIndicator }}</p>
       <p><strong>Upper Bound:</strong> {{ upper }}</p>
       <p><strong>Lower Bound:</strong> {{ lower }}</p>
       <p><strong>Time Interval:</strong> {{ selectedInterval }}</p>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -55,9 +55,10 @@ export default {
   },
   props: {
     coin: { type: String, required: true },
-    indicators: { type: Array, required: true },
+    // indicators ve intervals array'lerinin tiplerini açıkça string[] olarak belirtiyoruz
+    indicators: { type: Array as () => string[], required: true },
     indicatorValues: { type: Object, required: true },
-    intervals: { type: Array, required: true },
+    intervals: { type: Array as () => string[], required: true },
   },
   data() {
     return {
@@ -96,7 +97,7 @@ export default {
 <style>
 .control-bar-c {
   display: flex;
-  gap: 1rem;
+  gap: 16px;
   margin-bottom: 1rem;
   margin-top: 1rem;
   padding: 1rem;
@@ -105,20 +106,27 @@ export default {
   border-radius: 8px;
   text-align: center;
   flex-direction: row;
-
+  justify-content: space-evenly;
   align-items: center;
-
+  .coin-name {
+    font-size: 16px;
+    font-weight: 600;
+  }
   button {
     background-color: #06121e;
     color: aliceblue;
-    width: 100px;
+    width: 120px;
     height: 50px;
     border-radius: 16px;
-    border: 1px solid aliceblue;
+    border: 1.5px solid aliceblue;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 4px;
   }
   .input-field {
     display: flex;
     flex-direction: row;
+    gap: 16px;
   }
   .graph-area {
     margin-top: 1rem;

@@ -21,10 +21,12 @@ export default {
       type: String,
       required: true,
     },
+    // options array tipini string[] olarak belirtiyoruz
     options: {
-      type: Array,
+      type: Array as () => string[], // Burada dizi tipi belirtildi
       required: true,
     },
+    // modelValue için tip belirtiyoruz
     modelValue: {
       type: String,
       required: true,
@@ -48,41 +50,41 @@ export default {
 .dropdown-container {
   display: flex;
   flex-direction: column;
-  margin-bottom: 1rem;
-}
 
-/* Label Styling */
-.dropdown-label {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #d7d7d7;
-}
+  /* Label Styling */
+  .dropdown-label {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #d7d7d7;
+  }
 
-/* Select Box Styling */
-.dropdown-select {
-  padding: 0.8rem 1rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background-color: #f9f9f9;
-  outline: none;
-  transition: all 0.3s ease;
-}
+  /* Select Box Styling */
+  .dropdown-select {
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 2px solid #ccc;
+    background-color: #f9f9f9;
+    outline: none;
+    transition: all 0.3s ease;
+    width: 140px;
+  }
 
-.dropdown-select:focus {
-  border-color: #007bff;
-  background-color: #e6f1ff;
-}
+  .dropdown-select:focus {
+    border-color: #007bff;
+    background-color: #e6f1ff;
+  }
 
-/* Option Styling */
-.dropdown-option {
-  padding: 0.8rem;
-  font-size: 1rem;
-}
+  /* Option Styling */
+  .dropdown-option {
+    padding: 0.8rem;
+    font-size: 1rem;
+  }
 
-/* Hover effect for options */
-.dropdown-select:hover {
-  border-color: #007bff;
+  /* Hover effect for options */
+  .dropdown-select:hover {
+    border-color: #007bff;
+  }
 }
 </style>
