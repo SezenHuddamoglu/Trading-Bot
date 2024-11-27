@@ -21,7 +21,7 @@ import CoinList from '../components/CoinList.vue'
 import TradeHistory from '../components/TradeHistory.vue'
 import PriceChart from '../components/PriceChart.vue'
 import ControlBar from '../components/ControlBar.vue'
-
+import { ref } from 'vue'
 export default {
   name: 'DashboardPage',
   components: { CoinList, TradeHistory, PriceChart, ControlBar },
@@ -39,14 +39,16 @@ export default {
       trades: [], // İşlemler
       indicators: ['RSI', 'MACD', 'Bollinger Bands'], // İndikatör türleri
 
-      indicatorValues: {
+      // ref kullanarak
+      indicatorValues: ref<{ [key: string]: { upper: number; lower: number } }>({
         ETH: { upper: 70, lower: 30 },
-        BTC: { upper: 70, lower: 30 },
+        BTC: { upper: 60, lower: 40 },
         BNB: { upper: 70, lower: 30 },
         SOL: { upper: 70, lower: 30 },
         XRB: { upper: 70, lower: 30 },
         DOGE: { upper: 70, lower: 30 },
-      },
+      }),
+
       intervalId: null as number | null,
       intervals: ['1m', '5m', '15m', '30m', '45m', '1h'],
     }
@@ -58,11 +60,6 @@ export default {
         this.trades = await fetchTrades()
 
         // Her coin için varsayılan değerleri tanımla
-        if (!Object.keys(this.indicatorValues).length) {
-          this.coins.forEach((coin) => {
-            this.$set(this.indicatorValues, coin, { upper: 70, lower: 30 })
-          })
-        }
       } catch (error) {
         console.error('fetchAllData başarısız:', error)
         if (this.intervalId !== null) {
@@ -71,7 +68,15 @@ export default {
         }
       }
     },
-    updateGraph({ coin, indicator, values }: { coin: string; indicator: string; values: any }) {
+    updateGraph({
+      coin,
+      indicator,
+      values,
+    }: {
+      coin: string
+      indicator: string
+      values: { upper: number; lower: number }
+    }) {
       console.log('Graph updated for:', { coin, indicator, values })
     },
   },

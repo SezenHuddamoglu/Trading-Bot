@@ -9,7 +9,7 @@ export async function fetchCoins() {
   try {
     const response = await api.get('/coins')
     console.log('Gelen veri:', response.data)
-    return response.data.coins.map((item: any) => ({
+    return response.data.coins.map((item: { symbol: string; price: number; change: number }) => ({
       symbol: item.symbol,
       price: item.price || 0,
       change: item.change || 0,
@@ -24,14 +24,23 @@ export async function fetchTrades() {
   try {
     const response = await api.get('/trades')
     console.log('Gelen veri:', response.data)
-    return response.data.trades.map((trade: any) => ({
-      action: trade.action,
-      price: trade.price || 0,
-      amount: trade.amount || 0,
-      timestamp: trade.timestamp || '',
-      indicator: trade.indicator || 'N/A',
-      deposit: trade.deposit || 0, // Varsayılan değer ekleyebilirsiniz
-    }))
+    return response.data.trades.map(
+      (trade: {
+        action: string
+        price: number
+        amount: number
+        timestamp: string
+        indicator: string
+        deposit: number
+      }) => ({
+        action: trade.action,
+        price: trade.price || 0,
+        amount: trade.amount || 0,
+        timestamp: trade.timestamp || '',
+        indicator: trade.indicator || 'N/A',
+        deposit: trade.deposit || 0, // Varsayılan değer ekleyebilirsiniz
+      }),
+    )
   } catch (error) {
     console.error('fetchTrades başarısız:', error)
     throw error // Hata fırlatılarak üst katmanda işlenebilir
