@@ -43,7 +43,7 @@
 </template>
 
 <script lang="ts">
-import Dropdown from './DropDown.vue'
+import Dropdown from './Dropdown.vue'
 import UIInput from './Input.vue'
 import axios from 'axios'
 
