@@ -1,23 +1,21 @@
 import pandas as pd
 import numpy as np
-
 from binance.client import Client
 from datetime import datetime, timedelta, timezone
 import threading
-import time
-from tabulate import tabulate
-from app.models import CoinPrice, Trade
-from typing import List
 import logging
+from typing import List
+import time 
 
-# Logger'ı yapılandır
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Logger yapılandırması
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-# Binance API anahtarlarınızı buraya ekleyin
-API_KEY = "v7d1l6s5reAT0vJViQTzoGup1J1M9zAo1VhxH0HbYEPY3UEVTD8cYk0ooGSj2IB8"
-SECRET_KEY  = "v0UTEbZvUY3wYvCHiewRka8tcRoit9FanJTyO1bd2C5ax6tWJZa8LkZjtObbtV6c"
-TESTNET = True
-client = Client(api_key=API_KEY, api_secret=SECRET_KEY)
+# Binance API bilgileri (çevresel değişkenlerden alınmalı)
+api_key = ""
+secret_key = ""
+
+
+client = Client(api_key=api_key, api_secret=secret_key)
 
 # Ticaret parametreleri
 INITIAL_BALANCE = 10000  # Başlangıç bakiyesi
@@ -32,6 +30,7 @@ stop_trading = False
 trade_history = []
 price_history = []
 lock = threading.Lock()
+state = 0
 
 # RSI Hesaplama
 def compute_rsi(data, period):
@@ -74,6 +73,11 @@ def log_trade(action, price, amount, indicator):
         }
         trade_history.append(trade)
     logging.info(f"Trade executed: {trade}")
+
+def log_hold_state(curr_price, indicator):
+    print(f"HOLD: Current Price: {curr_price:.2f} | Indicator: {indicator}")
+    logging.info(f"HOLD: Current Price: {curr_price:.2f} | Indicator: {indicator}")
+
     
 def get_current_prices(target_coins):
     """
@@ -93,8 +97,16 @@ def get_current_prices(target_coins):
     return filtered_data
     
 def get_trade_history():
-    with data_lock:
-        return [trade.dict() for trade in trade_history]
+    with lock:
+        # trade_history içindeki datetime gibi serileştirilemeyen verileri kontrol edin
+        serialized_history = []
+        for trade in trade_history:
+            serialized_trade = trade.copy()  # Orijinal veriyi koruyarak kopya oluşturun
+            if isinstance(trade["timestamp"], datetime):
+                serialized_trade["timestamp"] = trade["timestamp"].isoformat()  # Tarihi ISO formatına çevirin
+            serialized_history.append(serialized_trade)
+        return serialized_history
+
 # Fiyat Güncelleme
 def update_price_history(symbol, interval, days):
     start_time = datetime.now(timezone.utc) - timedelta(days=days)
@@ -109,53 +121,83 @@ def update_price_history(symbol, interval, days):
     df.set_index("Date", inplace=True)
     return df[["Close", "High", "Low"]]
 
+
+def buy_process(curr_price, indicator):
+    global eth_coins, balance, state
+    num_coins_to_buy = balance / curr_price
+    eth_coins += num_coins_to_buy
+    balance -= num_coins_to_buy * curr_price
+    log_trade("Buy", curr_price, num_coins_to_buy, indicator)
+    state = 1
+
+    
+def sell_process(curr_price, indicator):
+    global eth_coins, balance, state
+    profit = eth_coins * curr_price
+    log_trade("Sell", curr_price, eth_coins, indicator)
+    balance += profit
+    eth_coins = 0
+    logging.info(f"Profit: {profit - INITIAL_BALANCE}")
+    state = 0
+
 # Ticaret Döngüsü
 def start_trading(coin, indicator, upper, lower, interval):
     print(f"----------")
-    print(f"----------")
-   
     print(f"Trading started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}")
-   
-    print(f"----------")
     print(f"----------")
 
     try:
-        # Modify the coin symbol to match the trading pair format (e.g., ETHUSDT)
-        coin_pair = f"{coin}USDT"  # Assuming you want to trade against USDT (modify if using a different pair)
+        lower = float(lower)
+        upper = float(upper)
 
-        # Fiyat verisini alın
-        df = update_price_history(coin_pair, interval, 1)  # 1 günlük veri
-        close_prices = df["Close"]
+        while True:  # Sonsuz döngü
+            print(f"Trading started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}")
+            coin_pair = f"{coin}USDT"  # USDT çifti
+            df = update_price_history(coin_pair, interval, 1)
+            close_prices = df["Close"]
+            curr_price = close_prices.iloc[-1]
+            print(f'state', state)
 
-        # Seçilen indikatöre göre işlem yap
-        if indicator == "RSI":
-            rsi = compute_rsi(close_prices.values, RSI_PERIOD)
-            print(f"RSI for {coin}: {rsi}")
-            if rsi < lower:
-                print("RSI: BUY signal triggered")
-            elif rsi > upper:
-                print("RSI: SELL signal triggered")
+            if indicator == "RSI":
+                rsi = compute_rsi(close_prices.values, RSI_PERIOD)
+                print(f"RSI for {coin}: {rsi}")
+                if state == 0 and rsi < lower:
+                    print("RSI: BUY signal triggered")
+                    buy_process(curr_price, indicator)
+                elif state == 1 and rsi > upper:
+                    print("RSI: SELL signal triggered")
+                    sell_process(curr_price, indicator)
+                else:
+                    log_hold_state(curr_price, indicator)
 
-        elif indicator == "MACD":
-            macd, macd_signal = compute_macd(close_prices)
-            print(f"MACD for {coin}: {macd}, Signal: {macd_signal}")
-            if macd > macd_signal:
-                print("MACD: BUY signal triggered")
-            elif macd < macd_signal:
-                print("MACD: SELL signal triggered")
+            elif indicator == "MACD":
+                macd, macd_signal = compute_macd(close_prices)
+                print(f"MACD for {coin}: {macd}, Signal: {macd_signal}")
+                if state == 0 and macd > macd_signal:
+                    print("MACD: BUY signal triggered")
+                    buy_process(curr_price, indicator)
+                elif state == 1 and macd < macd_signal:
+                    print("MACD: SELL signal triggered")
+                    sell_process(curr_price, indicator)
+                else:
+                    log_hold_state(curr_price, indicator)
 
-        elif indicator == "Bollinger":
-            upper_band, lower_band = compute_bollinger_bands(df)
-            current_price = close_prices.iloc[-1]
-            print(f"Bollinger Bands for {coin}: Lower {lower_band}, Upper {upper_band}")
-            if current_price <= lower_band:
-                print("Bollinger: BUY signal triggered")
-            elif current_price >= upper_band:
-                print("Bollinger: SELL signal triggered")
+            elif indicator == "Bollinger":
+                upper_band, lower_band = compute_bollinger_bands(df)
+                print(f"Bollinger Bands for {coin}: Lower {lower_band}, Upper {upper_band}")
+                if state == 0 and curr_price <= lower_band:
+                    print("Bollinger: BUY signal triggered")
+                    buy_process(curr_price, indicator)
+                elif state == 1 and curr_price >= upper_band:
+                    print("Bollinger: SELL signal triggered")
+                    sell_process(curr_price, indicator)
+                else:
+                    log_hold_state(curr_price, indicator)
 
-        else:
-            print(f"Unknown indicator: {indicator}")
+            logging.info(f"Trading Status: Current Price: {curr_price} | Indicator: {indicator}")
+
+            # Belirli bir süre bekle (örneğin, 10 saniye)
+            time.sleep(10)
+
     except Exception as e:
         print(f"Error in trading: {e}")
-
-
