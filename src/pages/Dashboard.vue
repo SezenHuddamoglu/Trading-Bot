@@ -1,30 +1,26 @@
 <template>
   <div>
     <CoinList :coins="coins" />
-    <TradeHistory :trades="trades" />
     <div v-for="coin in coinList" :key="coin.id" class="coin-section">
       <ControlBar
         :coin="coin.name"
         :indicators="indicators"
         :indicator-values="indicatorValues[coin.name]"
         :intervals="intervals"
-        @update:graph="updateGraph"
+        :trades="trades"
       />
     </div>
-    <PriceChart :trades="trades" />
   </div>
 </template>
 
 <script lang="ts">
 import { fetchCoins, fetchTrades } from '../services/api'
 import CoinList from '../components/CoinList.vue'
-import TradeHistory from '../components/TradeHistory.vue'
-import PriceChart from '../components/PriceChart.vue'
 import ControlBar from '../components/ControlBar.vue'
 import { ref } from 'vue'
 export default {
   name: 'DashboardPage',
-  components: { CoinList, TradeHistory, PriceChart, ControlBar },
+  components: { CoinList, ControlBar },
   data() {
     return {
       coinList: [
