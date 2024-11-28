@@ -51,8 +51,8 @@ export default {
   components: {
     Dropdown,
     UIInput,
-    TradeChart,
     TradeHistory,
+    TradeChart,
   },
   props: {
     coin: { type: String, required: true },
