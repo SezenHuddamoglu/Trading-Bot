@@ -6,6 +6,7 @@ import threading
 import logging
 from typing import List
 import time 
+from threading import Thread
 
 # Logger yapılandırması
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -127,6 +128,7 @@ def buy_process(curr_price, indicator):
     num_coins_to_buy = balance / curr_price
     eth_coins += num_coins_to_buy
     balance -= num_coins_to_buy * curr_price
+    logging.info("BUY PROCESS")
     log_trade("Buy", curr_price, num_coins_to_buy, indicator)
     state = 1
 
@@ -134,6 +136,7 @@ def buy_process(curr_price, indicator):
 def sell_process(curr_price, indicator):
     global eth_coins, balance, state
     profit = eth_coins * curr_price
+    logging.info("SELL PROCESS")
     log_trade("Sell", curr_price, eth_coins, indicator)
     balance += profit
     eth_coins = 0
@@ -146,58 +149,67 @@ def start_trading(coin, indicator, upper, lower, interval):
     print(f"Trading started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}")
     print(f"----------")
 
-    try:
-        lower = float(lower)
-        upper = float(upper)
+    with lock:
+        if coin not in trades:
+            trades[coin] = []  # Yeni coin için trade listesi oluştur
 
-        while True:  # Sonsuz döngü
-            print(f"Trading started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}")
-            coin_pair = f"{coin}USDT"  # USDT çifti
-            df = update_price_history(coin_pair, interval, 1)
-            close_prices = df["Close"]
-            curr_price = close_prices.iloc[-1]
-            print(f'state', state)
+        try:
+            lower = float(lower)
+            upper = float(upper)
 
-            if indicator == "RSI":
-                rsi = compute_rsi(close_prices.values, RSI_PERIOD)
-                print(f"RSI for {coin}: {rsi}")
-                if state == 0 and rsi < lower:
-                    print("RSI: BUY signal triggered")
-                    buy_process(curr_price, indicator)
-                elif state == 1 and rsi > upper:
-                    print("RSI: SELL signal triggered")
-                    sell_process(curr_price, indicator)
-                else:
-                    log_hold_state(curr_price, indicator)
+            while True:  # Sonsuz döngü
+                coin_pair = f"{coin}USDT"  # USDT çifti
+                df = update_price_history(coin_pair, interval, 1)
+                close_prices = df["Close"]
+                curr_price = close_prices.iloc[-1]
 
-            elif indicator == "MACD":
-                macd, macd_signal = compute_macd(close_prices)
-                print(f"MACD for {coin}: {macd}, Signal: {macd_signal}")
-                if state == 0 and macd > macd_signal:
-                    print("MACD: BUY signal triggered")
-                    buy_process(curr_price, indicator)
-                elif state == 1 and macd < macd_signal:
-                    print("MACD: SELL signal triggered")
-                    sell_process(curr_price, indicator)
-                else:
-                    log_hold_state(curr_price, indicator)
+                if indicator == "RSI":
+                    rsi = compute_rsi(close_prices.values, RSI_PERIOD)
+                    print(f"RSI for {coin}: {rsi}")
+                    if state == 0 and rsi < lower:
+                        print("RSI: BUY signal triggered")
+                        buy_process(curr_price, indicator)
+                        trades[coin].append({"action": "BUY", "price": curr_price})
+                    elif state == 1 and rsi > upper:
+                        print("RSI: SELL signal triggered")
+                        sell_process(curr_price, indicator)
+                        trades[coin].append({"action": "SELL", "price": curr_price})
+                    else:
+                        log_hold_state(curr_price, indicator)
 
-            elif indicator == "Bollinger":
-                upper_band, lower_band = compute_bollinger_bands(df)
-                print(f"Bollinger Bands for {coin}: Lower {lower_band}, Upper {upper_band}")
-                if state == 0 and curr_price <= lower_band:
-                    print("Bollinger: BUY signal triggered")
-                    buy_process(curr_price, indicator)
-                elif state == 1 and curr_price >= upper_band:
-                    print("Bollinger: SELL signal triggered")
-                    sell_process(curr_price, indicator)
-                else:
-                    log_hold_state(curr_price, indicator)
+                elif indicator == "MACD":
+                    macd, macd_signal = compute_macd(close_prices)
+                    print(f"MACD for {coin}: {macd}, Signal: {macd_signal}")
+                    if state == 0 and macd > macd_signal:
+                        print("MACD: BUY signal triggered")
+                        buy_process(curr_price, indicator)
+                        trades[coin].append({"action": "BUY", "price": curr_price})
+                    elif state == 1 and macd < macd_signal:
+                        print("MACD: SELL signal triggered")
+                        sell_process(curr_price, indicator)
+                        trades[coin].append({"action": "SELL", "price": curr_price})
+                    else:
+                        log_hold_state(curr_price, indicator)
 
-            logging.info(f"Trading Status: Current Price: {curr_price} | Indicator: {indicator}")
+                elif indicator == "Bollinger":
+                    upper_band, lower_band = compute_bollinger_bands(df)
+                    print(f"Bollinger Bands for {coin}: Lower {lower_band}, Upper {upper_band}")
+                    if state == 0 and curr_price <= lower_band:
+                        print("Bollinger: BUY signal triggered")
+                        buy_process(curr_price, indicator)
+                        trades[coin].append({"action": "BUY", "price": curr_price})
+                    elif state == 1 and curr_price >= upper_band:
+                        print("Bollinger: SELL signal triggered")
+                        sell_process(curr_price, indicator)
+                        trades[coin].append({"action": "SELL", "price": curr_price})
+                    else:
+                        log_hold_state(curr_price, indicator)
 
-            # Belirli bir süre bekle (örneğin, 10 saniye)
-            time.sleep(10)
+                logging.info(f"Trading Status: Current Price: {curr_price} | Indicator: {indicator}")
 
-    except Exception as e:
-        print(f"Error in trading: {e}")
+                # Belirli bir süre bekle (örneğin, 10 saniye)
+                time.sleep(10)
+
+        except Exception as e:
+            print(f"Error in trading: {e}")
+
