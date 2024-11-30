@@ -20,11 +20,16 @@ export async function fetchCoins() {
   }
 }
 
-export async function fetchTrades() {
+export async function fetchTrades(coin: string) {
   try {
-    const response = await api.get('/trades')
+    const response = await api.get(`/trades/${coin}`)
     console.log('Gelen veri:', response.data)
-    return response.data.trades.map(
+
+    const trades = Array.isArray(response.data.trades)
+      ? response.data.trades
+      : Object.values(response.data.trades)
+
+    return trades.map(
       (trade: {
         action: string
         price: number
@@ -38,12 +43,12 @@ export async function fetchTrades() {
         amount: trade.amount || 0,
         timestamp: trade.timestamp || '',
         indicator: trade.indicator || 'N/A',
-        deposit: trade.deposit || 0, // Varsayılan değer ekleyebilirsiniz
+        deposit: trade.deposit || 0,
       }),
     )
   } catch (error) {
-    console.error('fetchTrades başarısız:', error)
-    throw error // Hata fırlatılarak üst katmanda işlenebilir
+    console.error(`Error fetching trades for ${coin}:`, error)
+    throw error
   }
 }
 

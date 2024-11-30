@@ -53,7 +53,7 @@ import UIInput from './Input.vue'
 import TradeChart from './TradeChart.vue'
 import TradeHistory from './TradeHistory.vue'
 import axios from 'axios'
-
+import { Trade } from 'src/types/Trade'
 export default {
   name: 'ControlBar',
   components: {
@@ -67,7 +67,7 @@ export default {
     indicators: { type: Array as () => string[], required: true },
     indicatorValues: { type: Object, required: true },
     intervals: { type: Array as () => string[], required: true },
-    trades: { type: Array as () => object[], required: true },
+    trades: { type: Array as () => Trade[], required: true },
   },
   data() {
     return {
@@ -125,7 +125,7 @@ export default {
     flex-direction: row;
     justify-content: space-evenly;
     align-items: center;
-    width:;
+
     height: 40px;
     .coin-name {
       font-size: 16px;
