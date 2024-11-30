@@ -11,8 +11,9 @@ import time
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Binance API bilgileri (çevresel değişkenlerden alınmalı)
-api_key = ""
-secret_key = ""
+api_key = "v7d1l6s5reAT0vJViQTzoGup1J1M9zAo1VhxH0HbYEPY3UEVTD8cYk0ooGSj2IB8"
+secret_key = "v0UTEbZvUY3wYvCHiewRka8tcRoit9FanJTyO1bd2C5ax6tWJZa8LkZjtObbtV6c"
+
 
 client = Client(api_key=api_key, api_secret=secret_key)
 # Ticaret parametreleri
@@ -28,6 +29,60 @@ lock = threading.Lock()
 state = 0
 stop_signals = {}
 
+def perform_backtest(data, initial_balance, indicator_type, lower_limit, upper_limit, interval):
+    """
+    Çoklu coin ve indikatörlere göre backtest fonksiyonu.
+    """
+    balance = initial_balance
+    coins = 0
+    trades = []
+    state = 0  # 0: No position, 1: Holding coins
+
+    # Veriyi belirli interval ile yeniden örnekleme
+    data = data.resample(interval).mean()  # Örneğin '1h', '15m' gibi
+
+    for i in range(len(data) - 1):
+        current_price = data['Close'].iloc[i]
+        indicator_value = None
+
+        # Seçilen indikatöre göre değer hesaplama
+        if indicator_type == "RSI":
+            recent_data = data['Close'].iloc[max(0, i-14):i+1]
+            indicator_value = compute_rsi(recent_data, 14)  # RSI hesaplama fonksiyonu
+        elif indicator_type == "MACD":
+            macd, signal = compute_macd(data['Close'].iloc[:i+1])
+            indicator_value = macd - signal
+        elif indicator_type == "Bollinger":
+            sma, upper_band, lower_band = compute_bollinger_bands(data['Close'].iloc[:i+1])
+            indicator_value = (current_price - sma) / (upper_band - lower_band)
+
+        # İşlem mantığı
+        if state == 0 and indicator_value is not None and indicator_value < lower_limit:  # BUY sinyali
+            coins = balance / current_price
+            balance -= coins * current_price
+            trades.append({"action": "BUY", "price": current_price, "balance": balance, "indicator_value": indicator_value})
+            state = 1
+        elif state == 1 and indicator_value is not None and indicator_value > upper_limit:  # SELL sinyali
+            balance += coins * current_price
+            coins = 0
+            trades.append({"action": "SELL", "price": current_price, "balance": balance, "indicator_value": indicator_value})
+            state = 0
+
+    # Son bakiye
+    final_balance = balance + coins * data['Close'].iloc[-1]
+    return {"trades": trades, "final_balance": final_balance}
+
+def load_historical_data(symbol, interval, start_date):
+    klines = client.get_historical_klines(symbol, interval, start_date)
+    df = pd.DataFrame(klines, columns=[
+        "Open Time", "Open", "High", "Low", "Close", "Volume",
+        "Close Time", "Quote Asset Volume", "Number of Trades",
+        "Taker Buy Base Asset Volume", "Taker Buy Quote Asset Volume", "Ignore"
+    ])
+    df["Close"] = pd.to_numeric(df["Close"])
+    df["Date"] = pd.to_datetime(df["Open Time"], unit="ms")
+    df.set_index("Date", inplace=True)
+    return df
 
 # RSI Hesaplama
 def compute_rsi(data, period):
@@ -151,52 +206,52 @@ def trading_loop(coin, indicator, upper, lower, interval):
             curr_price = close_prices.iloc[-1]
             print(f'state', state)
 
-                if indicator == "RSI":
-                    rsi = compute_rsi(close_prices.values, RSI_PERIOD)
-                    print(f"RSI for {coin}: {rsi}")
-                    if state == 0 and rsi < lower:
-                        print("RSI: BUY signal triggered")
-                        buy_process(curr_price, indicator)
-                        trades[coin].append({"action": "BUY", "price": curr_price})
-                    elif state == 1 and rsi > upper:
-                        print("RSI: SELL signal triggered")
-                        sell_process(curr_price, indicator)
-                        trades[coin].append({"action": "SELL", "price": curr_price})
-                    else:
-                        log_hold_state(curr_price, indicator)
+            if indicator == "RSI":
+                rsi = compute_rsi(close_prices.values, RSI_PERIOD)
+                print(f"RSI for {coin}: {rsi}")
+                if state == 0 and rsi < lower:
+                    print("RSI: BUY signal triggered")
+                    buy_process(curr_price, indicator)
+                    trades[coin].append({"action": "BUY", "price": curr_price})
+                elif state == 1 and rsi > upper:
+                    print("RSI: SELL signal triggered")
+                    sell_process(curr_price, indicator)
+                    trades[coin].append({"action": "SELL", "price": curr_price})
+                else:
+                    log_hold_state(curr_price, indicator)
 
-                elif indicator == "MACD":
-                    macd, macd_signal = compute_macd(close_prices)
-                    print(f"MACD for {coin}: {macd}, Signal: {macd_signal}")
-                    if state == 0 and macd > macd_signal:
-                        print("MACD: BUY signal triggered")
-                        buy_process(curr_price, indicator)
-                        trades[coin].append({"action": "BUY", "price": curr_price})
-                    elif state == 1 and macd < macd_signal:
-                        print("MACD: SELL signal triggered")
-                        sell_process(curr_price, indicator)
-                        trades[coin].append({"action": "SELL", "price": curr_price})
-                    else:
-                        log_hold_state(curr_price, indicator)
+            elif indicator == "MACD":
+                macd, macd_signal = compute_macd(close_prices)
+                print(f"MACD for {coin}: {macd}, Signal: {macd_signal}")
+                if state == 0 and macd > macd_signal:
+                    print("MACD: BUY signal triggered")
+                    buy_process(curr_price, indicator)
+                    trades[coin].append({"action": "BUY", "price": curr_price})
+                elif state == 1 and macd < macd_signal:
+                    print("MACD: SELL signal triggered")
+                    sell_process(curr_price, indicator)
+                    trades[coin].append({"action": "SELL", "price": curr_price})
+                else:
+                    log_hold_state(curr_price, indicator)
 
-                elif indicator == "Bollinger":
-                    upper_band, lower_band = compute_bollinger_bands(df)
-                    print(f"Bollinger Bands for {coin}: Lower {lower_band}, Upper {upper_band}")
-                    if state == 0 and curr_price <= lower_band:
-                        print("Bollinger: BUY signal triggered")
-                        buy_process(curr_price, indicator)
-                        trades[coin].append({"action": "BUY", "price": curr_price})
-                    elif state == 1 and curr_price >= upper_band:
-                        print("Bollinger: SELL signal triggered")
-                        sell_process(curr_price, indicator)
-                        trades[coin].append({"action": "SELL", "price": curr_price})
-                    else:
-                        log_hold_state(curr_price, indicator)
+            elif indicator == "Bollinger":
+                upper_band, lower_band = compute_bollinger_bands(df)
+                print(f"Bollinger Bands for {coin}: Lower {lower_band}, Upper {upper_band}")
+                if state == 0 and curr_price <= lower_band:
+                    print("Bollinger: BUY signal triggered")
+                    buy_process(curr_price, indicator)
+                    trades[coin].append({"action": "BUY", "price": curr_price})
+                elif state == 1 and curr_price >= upper_band:
+                    print("Bollinger: SELL signal triggered")
+                    sell_process(curr_price, indicator)
+                    trades[coin].append({"action": "SELL", "price": curr_price})
+                else:
+                    log_hold_state(curr_price, indicator)
 
-                logging.info(f"Trading Status: Current Price: {curr_price} | Indicator: {indicator}")
+            logging.info(f"Trading Status: Current Price: {curr_price} | Indicator: {indicator}")
 
-                # Belirli bir süre bekle (örneğin, 10 saniye)
-                time.sleep(10)
+            # Belirli bir süre bekle (örneğin, 10 saniye)
+            time.sleep(10)
 
       except Exception as e:
         print(f"Error in trading: {e}")
