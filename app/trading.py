@@ -11,8 +11,9 @@ import time
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Binance API bilgileri (çevresel değişkenlerden alınmalı)
-api_key = ""
-secret_key = ""
+api_key = "v7d1l6s5reAT0vJViQTzoGup1J1M9zAo1VhxH0HbYEPY3UEVTD8cYk0ooGSj2IB8"
+secret_key = "v0UTEbZvUY3wYvCHiewRka8tcRoit9FanJTyO1bd2C5ax6tWJZa8LkZjtObbtV6c"
+
 
 client = Client(api_key=api_key, api_secret=secret_key)
 # Ticaret parametreleri
@@ -28,6 +29,60 @@ lock = threading.Lock()
 coin_states = {}  # Her coin için state saklanacak
 stop_signals = {}
 
+def perform_backtest(data, initial_balance, indicator_type, lower_limit, upper_limit, interval):
+    """
+    Çoklu coin ve indikatörlere göre backtest fonksiyonu.
+    """
+    balance = initial_balance
+    coins = 0
+    trades = []
+    state = 0  # 0: No position, 1: Holding coins
+
+    # Veriyi belirli interval ile yeniden örnekleme
+    data = data.resample(interval).mean()  # Örneğin '1h', '15m' gibi
+
+    for i in range(len(data) - 1):
+        current_price = data['Close'].iloc[i]
+        indicator_value = None
+
+        # Seçilen indikatöre göre değer hesaplama
+        if indicator_type == "RSI":
+            recent_data = data['Close'].iloc[max(0, i-14):i+1]
+            indicator_value = compute_rsi(recent_data, 14)  # RSI hesaplama fonksiyonu
+        elif indicator_type == "MACD":
+            macd, signal = compute_macd(data['Close'].iloc[:i+1])
+            indicator_value = macd - signal
+        elif indicator_type == "Bollinger":
+            sma, upper_band, lower_band = compute_bollinger_bands(data['Close'].iloc[:i+1])
+            indicator_value = (current_price - sma) / (upper_band - lower_band)
+
+        # İşlem mantığı
+        if state == 0 and indicator_value is not None and indicator_value < lower_limit:  # BUY sinyali
+            coins = balance / current_price
+            balance -= coins * current_price
+            trades.append({"action": "BUY", "price": current_price, "balance": balance, "indicator_value": indicator_value})
+            state = 1
+        elif state == 1 and indicator_value is not None and indicator_value > upper_limit:  # SELL sinyali
+            balance += coins * current_price
+            coins = 0
+            trades.append({"action": "SELL", "price": current_price, "balance": balance, "indicator_value": indicator_value})
+            state = 0
+
+    # Son bakiye
+    final_balance = balance + coins * data['Close'].iloc[-1]
+    return {"trades": trades, "final_balance": final_balance}
+
+def load_historical_data(symbol, interval, start_date):
+    klines = client.get_historical_klines(symbol, interval, start_date)
+    df = pd.DataFrame(klines, columns=[
+        "Open Time", "Open", "High", "Low", "Close", "Volume",
+        "Close Time", "Quote Asset Volume", "Number of Trades",
+        "Taker Buy Base Asset Volume", "Taker Buy Quote Asset Volume", "Ignore"
+    ])
+    df["Close"] = pd.to_numeric(df["Close"])
+    df["Date"] = pd.to_datetime(df["Open Time"], unit="ms")
+    df.set_index("Date", inplace=True)
+    return df
 
 # RSI Hesaplama
 def compute_rsi(data, period):
