@@ -1,10 +1,12 @@
-# app/trading_utils.py
-
+import threading
 from app.trading import start_trading
 
-def start_trading_thread(coin, indicator, upper, lower, interval):
-    try:
-        print(f"Başlatılıyor: {coin}, {indicator}, {upper}, {lower}, {interval}")
-        start_trading(coin, indicator, upper, lower, interval)
-    except Exception as e:
-        print(f"Ticaret başlatılırken hata oluştu: {e}")
+def start_trading_thread(coin, indicator, upper, lower, interval, trade_map):
+    thread = threading.Thread(
+        target=start_trading,
+        args=(coin, indicator, upper, lower, interval),
+        daemon=True
+    )
+    thread.start()
+    trade_map[coin] = thread
+    return thread
