@@ -5,48 +5,13 @@ from app.trading import load_historical_data
 from app.trading import perform_backtest
 import pandas as pd
 
+
 api = Blueprint('api', __name__)
 
 # Logger ayarları
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-@api.route("/trades/<coin>", methods=["GET"])
-def get_trades_for_coin(coin):
-    """
-    Get the trade history for a specific coin
-    ---
-    parameters:
-      - name: coin
-        in: path
-        description: The coin for which to fetch trade history (e.g., BTC, ETH)
-        required: true
-        type: string
-    responses:
-      200:
-        description: Successfully fetched trade history
-        schema:
-          type: object
-          properties:
-            trades:
-              type: array
-              items:
-                type: object
-                properties:
-                  timestamp:
-                    type: string
-                  trade_type:
-                    type: string
-                  price:
-                    type: number
-                  quantity:
-                    type: number
-      400:
-        description: Invalid coin parameter
-    """
-    trade_history = get_trade_history(coin)
-    return jsonify({"trades": trade_history})
-
 
 @api.route("/trades/<coin>", methods=["GET"])
 def get_trades_for_coin(coin):
@@ -83,7 +48,6 @@ def get_trades_for_coin(coin):
     """
     trade_history = get_trade_history(coin)
     return jsonify({"trades": trade_history})
-
 
 @api.route('/backtest', methods=['POST'])
 def backtest():
@@ -105,26 +69,7 @@ def backtest():
     result = perform_backtest(data, initial_balance, indicator, lower_limit, upper_limit, interval)
     
     return jsonify(result)
-api.route('/backtest', methods=['POST'])
-def backtest():
-    # Kullanıcıdan gelen parametreler
-    params = request.json
-    coin = params.get("coin")  # Örneğin 'ETH'
-    indicator = params.get("indicator")  # 'RSI', 'MACD', 'Bollinger'
-    lower_limit = params.get("lower_limit", 30)
-    upper_limit = params.get("upper_limit", 70)
-    interval = params.get("interval", '1h')  # Default: 1 saatlik veriler
-    initial_balance = params.get("initial_balance", 10000)
 
-    # Verileri yükleme (örnek)
-    data = load_historical_data(coin)  # Geçmiş verileri yükleme fonksiyonu
-    data.index = pd.to_datetime(data['timestamp'])  # Zaman serisi düzenleme
-    data = data.set_index('timestamp')
-
-    # Backtest işlemi
-    result = perform_backtest(data, initial_balance, indicator, lower_limit, upper_limit, interval)
-    
-    return jsonify(result)
 
 @api.route("/trades", methods=["GET"])
 def get_trades():

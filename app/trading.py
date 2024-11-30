@@ -223,6 +223,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
                 print(f"MACD for {coin}: {macd}, Signal: {macd_signal}")
                 if coin_states[coin] == 0 and macd > macd_signal:
                     print("MACD: BUY signal triggered")
+
                     buy_process(curr_price, indicator,coin)
                 elif coin_states[coin] == 1 and macd < macd_signal:
                     print("MACD: SELL signal triggered")
@@ -294,4 +295,3 @@ def sell_process(curr_price, indicator, coin):
     balance += profit
     eth_coins = 0
     coin_states[coin] = 0  # Alım bekleniyor
-
