@@ -7,6 +7,7 @@
       upper=""
       lower=""
       :intervals="intervals"
+      :initialBalance="''"
       :trades="backtests"
     />
     <div v-for="coin in coinList" :key="coin.name" class="coin-section">
@@ -27,6 +28,7 @@ import CoinList from '../components/CoinList.vue'
 import ControlBar from '../components/ControlBar.vue'
 import { reactive, ref } from 'vue'
 import Backtest from '../components/Backtest.vue'
+import { Trade } from '../types/Trade'
 
 export default {
   name: 'DashboardPage',
@@ -43,13 +45,16 @@ export default {
       ],
       backtestCoins: ['ETH', 'BTC', 'BNB', 'SOL', 'XRB', 'DOGE'],
       coins: [],
-      tradesByCoin: reactive<{ [key: string]: any[] }>({}),
+      tradesByCoin: reactive<{ [key: string]: Trade[] }>({}),
+
       backtests: [],
       trades: [], // İşlemler
       indicators: ['RSI', 'MACD', 'Bollinger Bands'], // İndikatör türleri
 
       // ref kullanarak
-      indicatorValues: ref({
+      indicatorValues: ref<{
+        [key: string]: { upper: number; lower: number }
+      }>({
         ETH: { upper: 70, lower: 30 },
         BTC: { upper: 60, lower: 40 },
         BNB: { upper: 70, lower: 30 },
@@ -57,7 +62,6 @@ export default {
         XRB: { upper: 70, lower: 30 },
         DOGE: { upper: 70, lower: 30 },
       }),
-
       intervalId: null as number | null,
       intervals: ['1m', '5m', '15m', '30m', '45m', '1h'],
     }
@@ -72,7 +76,7 @@ export default {
     async fetchAllData() {
       try {
         this.coins = await fetchCoins()
-        this.trades = await fetchTrades()
+
         for (const coin of this.coinList) {
           if (!this.tradesByCoin[coin.name]) {
             this.tradesByCoin[coin.name] = [] // Başlangıç değeri belirle
