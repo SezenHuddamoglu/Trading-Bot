@@ -23,14 +23,17 @@
       <div class="input-field" v-if="selectedIndicator === 'RSI'">
         <UIInput v-model="upperData" label="Upper Bound:" />
         <UIInput v-model="lowerData" label="Lower Bound: " />
+        <UIInput v-model="balance" label="Initial Balance: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'MACD'">
         <UIInput v-model="upperData" label="High Price:" />
         <UIInput v-model="lowerData" label="Close Price: " />
+        <UIInput v-model="balance" label="InitialBalance: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'Bollinger Bands'">
         <UIInput v-model="upperData" label="Upper Band:" />
         <UIInput v-model="lowerData" label="Lower Band: " />
+        <UIInput v-model="balance" label="InitialBalance: " />
       </div>
 
       <!-- Time Interval Dropdown -->
@@ -74,6 +77,7 @@ export default {
     lower: { type: String, required: true },
     intervals: { type: Array as () => string[], required: true },
     trades: { type: Array as () => object[], required: true },
+    initialBalance: { type: String, required: true },
   },
   data() {
     return {
@@ -83,6 +87,7 @@ export default {
       upperData: 70,
       lowerData: 30,
       localTrades: [], // Coin özelinde trade geçmişi
+      balance: 10000,
     }
   },
   methods: {
