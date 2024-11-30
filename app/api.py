@@ -1,8 +1,6 @@
 from flask import Blueprint, request, jsonify
 import logging
-from app.trading import start_trading, reset_trades, get_trade_history
-from app.trading import load_historical_data
-from app.trading import perform_backtest
+from app.trading import start_trading, reset_trades, get_trade_history,perform_backtest,load_historical_data
 import pandas as pd
 
 
@@ -51,7 +49,75 @@ def get_trades_for_coin(coin):
 
 @api.route('/backtest', methods=['POST'])
 def backtest():
-    # Kullanıcıdan gelen parametreler
+    """
+    Perform a backtest on historical data for a specific coin and indicator
+    ---
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            coin:
+              type: string
+              description: The coin to perform the backtest on (e.g., 'ETH', 'BTC')
+              example: "ETH"
+            indicator:
+              type: string
+              description: The indicator to use for backtesting ('RSI', 'MACD', 'Bollinger')
+              example: "RSI"
+            lower_limit:
+              type: number
+              description: The lower limit for the indicator
+              example: 30
+            upper_limit:
+              type: number
+              description: The upper limit for the indicator
+              example: 70
+            interval:
+              type: string
+              description: Time interval for the backtest (e.g., '1h', '1d')
+              example: "1h"
+            initial_balance:
+              type: number
+              description: Initial balance for the backtest
+              example: 10000
+    responses:
+      200:
+        description: Backtest performed successfully
+        schema:
+          type: object
+          properties:
+            total_profit:
+              type: number
+              description: The total profit or loss from the backtest
+              example: 1500.25
+            final_balance:
+              type: number
+              description: The final balance after the backtest
+              example: 11500.25
+            trades:
+              type: array
+              description: List of trades executed during the backtest
+              items:
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                    description: The time of the trade
+                  trade_type:
+                    type: string
+                    description: The type of the trade ('BUY' or 'SELL')
+                  price:
+                    type: number
+                    description: The price at which the trade was executed
+                  quantity:
+                    type: number
+                    description: The quantity traded
+      400:
+        description: Invalid input parameters
+    """
     params = request.json
     coin = params.get("coin")  # Örneğin 'ETH'
     indicator = params.get("indicator")  # 'RSI', 'MACD', 'Bollinger'
@@ -61,14 +127,18 @@ def backtest():
     initial_balance = params.get("initial_balance", 10000)
 
     # Verileri yükleme (örnek)
-    data = load_historical_data(coin)  # Geçmiş verileri yükleme fonksiyonu
-    data.index = pd.to_datetime(data['timestamp'])  # Zaman serisi düzenleme
-    data = data.set_index('timestamp')
+    data = load_historical_data(coin,interval)  # Geçmiş verileri yükleme fonksiyonu
+    print("---------------",data.columns,"---------------------")
+    #data.index = pd.to_datetime(data['timestamp']) 
+    #data = data.set_index('timestamp')
+    data['Open Time'] = pd.to_datetime(data['Open Time'], unit='ms')  # Eğer zaman damgası milisaniye cinsindense
+    data.set_index('Open Time', inplace=True) 
 
     # Backtest işlemi
     result = perform_backtest(data, initial_balance, indicator, lower_limit, upper_limit, interval)
     
     return jsonify(result)
+
 
 
 @api.route("/trades", methods=["GET"])
