@@ -26,7 +26,7 @@ eth_coins = 0
 trade_history = {}
 price_history = {}
 lock = threading.Lock()
-state = 0
+coin_states = {}  # Her coin için state saklanacak
 stop_signals = {}
 
 def perform_backtest(data, initial_balance, indicator_type, lower_limit, upper_limit, interval):
@@ -112,7 +112,7 @@ def compute_bollinger_bands(data, window=20, num_std_dev=2):
     return upper_band.iloc[-1], lower_band.iloc[-1]
 
 # İşlem kaydı
-def log_trade(action, price, amount, indicator):
+def log_trade(action, price, amount, indicator, coin):
     global balance
     with lock:
         trade = {
@@ -122,10 +122,11 @@ def log_trade(action, price, amount, indicator):
             "timestamp": datetime.now(timezone.utc),
             "indicator": indicator,
             "balance": balance,
+            "coin": coin
         }
-        if action not in trade_history:
-            trade_history[action] = []
-        trade_history[action].append(trade)
+        if coin not in trade_history:
+            trade_history[coin] = []
+        trade_history[coin].append(trade)
     logging.info(f"Trade executed: {trade}")
 
 
@@ -151,16 +152,13 @@ def get_current_prices(target_coins):
     ]
     return filtered_data
     
-def get_trade_history():
+def get_trade_history(coin=None):
     with lock:
-        # trade_history içindeki datetime gibi serileştirilemeyen verileri kontrol edin
-        serialized_history = []
-        for trade in trade_history:
-            serialized_trade = trade.copy()  # Orijinal veriyi koruyarak kopya oluşturun
-            if isinstance(trade["timestamp"], datetime):
-                serialized_trade["timestamp"] = trade["timestamp"].isoformat()  # Tarihi ISO formatına çevirin
-            serialized_history.append(serialized_trade)
-        return serialized_history
+        if coin:
+            return trade_history.get(coin, [])
+        return trade_history
+
+
 
 # Global stop flags
 stop_flags = {}
@@ -176,7 +174,8 @@ threads = {}
 # Ticaret Döngüsü
 def start_trading(coin, indicator, upper, lower, interval):
     global stop_flags, threads
-    
+    if coin not in coin_states:
+        coin_states[coin] = 0 
     # Eski iş parçacığını durdur
     if coin in threads and threads[coin].is_alive():
         stop_flags[coin] = True  # Durdurma sinyalini ayarla
@@ -199,52 +198,52 @@ def trading_loop(coin, indicator, upper, lower, interval):
         upper = float(upper)
 
         while not stop_flags[coin]: # Sonsuz döngü
+            
             print(f"Trading started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}")
             coin_pair = f"{coin}USDT"  # USDT çifti
             df = update_price_history(coin_pair, interval, 1)
             close_prices = df["Close"]
             curr_price = close_prices.iloc[-1]
-            print(f'state', state)
+            #print(f'state', coin_states[coin] == 0 )
 
             if indicator == "RSI":
                 rsi = compute_rsi(close_prices.values, RSI_PERIOD)
                 print(f"RSI for {coin}: {rsi}")
-                if state == 0 and rsi < lower:
+                if coin_states[coin]== 0 and rsi < lower:
                     print("RSI: BUY signal triggered")
-                    buy_process(curr_price, indicator)
-                    trades[coin].append({"action": "BUY", "price": curr_price})
-                elif state == 1 and rsi > upper:
+
+                    buy_process(curr_price, indicator,coin)
+                elif coin_states[coin] == 1 and rsi > upper:
                     print("RSI: SELL signal triggered")
-                    sell_process(curr_price, indicator)
-                    trades[coin].append({"action": "SELL", "price": curr_price})
+                    sell_process(curr_price, indicator,coin)
+
                 else:
                     log_hold_state(curr_price, indicator)
 
             elif indicator == "MACD":
                 macd, macd_signal = compute_macd(close_prices)
                 print(f"MACD for {coin}: {macd}, Signal: {macd_signal}")
-                if state == 0 and macd > macd_signal:
-                    print("MACD: BUY signal triggered")
-                    buy_process(curr_price, indicator)
-                    trades[coin].append({"action": "BUY", "price": curr_price})
-                elif state == 1 and macd < macd_signal:
+                if coin_states[coin] == 0 and macd > macd_signal:
+
+                    buy_process(curr_price, indicator,coin)
+                elif coin_states[coin] == 1 and macd < macd_signal:
                     print("MACD: SELL signal triggered")
-                    sell_process(curr_price, indicator)
-                    trades[coin].append({"action": "SELL", "price": curr_price})
+                    sell_process(curr_price, indicator,coin)
+
                 else:
                     log_hold_state(curr_price, indicator)
 
             elif indicator == "Bollinger":
                 upper_band, lower_band = compute_bollinger_bands(df)
                 print(f"Bollinger Bands for {coin}: Lower {lower_band}, Upper {upper_band}")
-                if state == 0 and curr_price <= lower_band:
+                if coin_states[coin]== 0 and curr_price <= lower_band:
                     print("Bollinger: BUY signal triggered")
-                    buy_process(curr_price, indicator)
-                    trades[coin].append({"action": "BUY", "price": curr_price})
-                elif state == 1 and curr_price >= upper_band:
+
+                    buy_process(curr_price, indicator,coin)
+                elif coin_states[coin]== 1 and curr_price >= upper_band:
                     print("Bollinger: SELL signal triggered")
-                    sell_process(curr_price, indicator)
-                    trades[coin].append({"action": "SELL", "price": curr_price})
+                    sell_process(curr_price, indicator,coin)
+
                 else:
                     log_hold_state(curr_price, indicator)
 
@@ -285,20 +284,19 @@ def update_price_history(symbol, interval="5m", days=1):
     return df[["Close", "High", "Low"]]
 
 
-def buy_process(curr_price, indicator):
-    global eth_coins, balance, state
+def buy_process(curr_price, indicator, coin):
+    global balance, eth_coins
     num_coins_to_buy = balance / curr_price
     eth_coins += num_coins_to_buy
-    balance -= num_coins_to_buy * curr_price
-    log_trade("Buy", curr_price, num_coins_to_buy, indicator)
-    state = 1
+    balance = 0  # Tüm bakiyeyi kullandık
+    log_trade("Buy", curr_price, num_coins_to_buy, indicator, coin)
+    coin_states[coin] = 1  # Satış bekleniyor
 
-    
-def sell_process(curr_price, indicator):
-    global eth_coins, balance, state
+def sell_process(curr_price, indicator, coin):
+    global balance, eth_coins
     profit = eth_coins * curr_price
-    log_trade("Sell", curr_price, eth_coins, indicator)
+    log_trade("Sell", curr_price, eth_coins, indicator, coin)
     balance += profit
     eth_coins = 0
-    logging.info(f"Profit: {profit - INITIAL_BALANCE}")
-    state = 0
+    coin_states[coin] = 0  # Alım bekleniyor
+
