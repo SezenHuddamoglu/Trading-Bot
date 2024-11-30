@@ -16,15 +16,6 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 # API Blueprint'ini uygulamaya dahil et
 app.register_blueprint(api)
 
-# Ticaret algoritmasını arka planda başlat
-def start_trading_thread(coin, indicator, upper, lower, interval):
-    try:
-        from app.trading import start_trading  # Burada içeri aktarın
-        print(f"Başlatılıyor: {coin}, {indicator}, {upper}, {lower}, {interval}")
-        start_trading(coin, indicator, upper, lower, interval)
-    except Exception as e:
-        print(f"Ticaret başlatılırken hata oluştu: {e}")
-
 # Anasayfa rotası
 @app.route("/")
 def home():

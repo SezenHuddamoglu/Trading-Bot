@@ -4,9 +4,8 @@ from binance.client import Client
 from datetime import datetime, timedelta, timezone
 import threading
 import logging
-from typing import List
-import time 
-from threading import Thread
+from typing import Dict, List
+import time
 
 # Logger yapılandırması
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -15,23 +14,20 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 api_key = ""
 secret_key = ""
 
-
 client = Client(api_key=api_key, api_secret=secret_key)
-
 # Ticaret parametreleri
 INITIAL_BALANCE = 10000  # Başlangıç bakiyesi
 LOSS_THRESHOLD = 0.90  # Zarar durdurma eşiği
 RSI_PERIOD = 14
 TRADE_INTERVALS = ["1m", "5m", "15m", "30m", "1h"]
-
-# Ticaret değişkenleri
 balance = INITIAL_BALANCE
 eth_coins = 0
-stop_trading = False
-trade_history = []
-price_history = []
+trade_history = {}
+price_history = {}
 lock = threading.Lock()
 state = 0
+stop_signals = {}
+
 
 # RSI Hesaplama
 def compute_rsi(data, period):
@@ -72,8 +68,11 @@ def log_trade(action, price, amount, indicator):
             "indicator": indicator,
             "balance": balance,
         }
-        trade_history.append(trade)
+        if action not in trade_history:
+            trade_history[action] = []
+        trade_history[action].append(trade)
     logging.info(f"Trade executed: {trade}")
+
 
 def log_hold_state(curr_price, indicator):
     print(f"HOLD: Current Price: {curr_price:.2f} | Indicator: {indicator}")
@@ -108,60 +107,49 @@ def get_trade_history():
             serialized_history.append(serialized_trade)
         return serialized_history
 
-# Fiyat Güncelleme
-def update_price_history(symbol, interval, days):
-    start_time = datetime.now(timezone.utc) - timedelta(days=days)
-    klines = client.get_historical_klines(symbol, interval, start_str=str(start_time))
-    df = pd.DataFrame(klines, columns=[
-        "Open Time", "Open", "High", "Low", "Close", "Volume",
-        "Close Time", "Quote Asset Volume", "Number of Trades",
-        "Taker Buy Base Asset Volume", "Taker Buy Quote Asset Volume", "Ignore"
-    ])
-    df["Close"] = pd.to_numeric(df["Close"])
-    df["Date"] = pd.to_datetime(df["Open Time"], unit="ms")
-    df.set_index("Date", inplace=True)
-    return df[["Close", "High", "Low"]]
+# Global stop flags
+stop_flags = {}
+
+def reset_trades(coin):
+    """Belirli bir coin için işlem geçmişini sıfırla ve önceki işlemi durdur."""
+    if coin in stop_flags:
+        stop_flags[coin] = True  # Önceki işlemi durdur
+    stop_flags[coin] = False    # Yeni işlem için durdurmayı kapat
 
 
-def buy_process(curr_price, indicator):
-    global eth_coins, balance, state
-    num_coins_to_buy = balance / curr_price
-    eth_coins += num_coins_to_buy
-    balance -= num_coins_to_buy * curr_price
-    logging.info("BUY PROCESS")
-    log_trade("Buy", curr_price, num_coins_to_buy, indicator)
-    state = 1
-
-    
-def sell_process(curr_price, indicator):
-    global eth_coins, balance, state
-    profit = eth_coins * curr_price
-    logging.info("SELL PROCESS")
-    log_trade("Sell", curr_price, eth_coins, indicator)
-    balance += profit
-    eth_coins = 0
-    logging.info(f"Profit: {profit - INITIAL_BALANCE}")
-    state = 0
-
+threads = {}
 # Ticaret Döngüsü
 def start_trading(coin, indicator, upper, lower, interval):
+    global stop_flags, threads
+    
+    # Eski iş parçacığını durdur
+    if coin in threads and threads[coin].is_alive():
+        stop_flags[coin] = True  # Durdurma sinyalini ayarla
+        threads[coin].join()  # Eski iş parçacığını sonlandır
+
+    # Yeni işlem için durdurma sinyalini sıfırla ve iş parçacığını başlat
+    stop_flags[coin] = False
+    threads[coin] = threading.Thread(target=trading_loop, args=(coin, indicator, upper, lower, interval))
+    threads[coin].start()
     print(f"----------")
     print(f"Trading started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}")
     print(f"----------")
 
-    with lock:
-        if coin not in trades:
-            trades[coin] = []  # Yeni coin için trade listesi oluştur
+def trading_loop(coin, indicator, upper, lower, interval):
+      """Asıl işlem döngüsü."""
+      print(f"Trading started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}")
+    
+      try:
+        lower = float(lower)
+        upper = float(upper)
 
-        try:
-            lower = float(lower)
-            upper = float(upper)
-
-            while True:  # Sonsuz döngü
-                coin_pair = f"{coin}USDT"  # USDT çifti
-                df = update_price_history(coin_pair, interval, 1)
-                close_prices = df["Close"]
-                curr_price = close_prices.iloc[-1]
+        while not stop_flags[coin]: # Sonsuz döngü
+            print(f"Trading started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}")
+            coin_pair = f"{coin}USDT"  # USDT çifti
+            df = update_price_history(coin_pair, interval, 1)
+            close_prices = df["Close"]
+            curr_price = close_prices.iloc[-1]
+            print(f'state', state)
 
                 if indicator == "RSI":
                     rsi = compute_rsi(close_prices.values, RSI_PERIOD)
@@ -210,6 +198,52 @@ def start_trading(coin, indicator, upper, lower, interval):
                 # Belirli bir süre bekle (örneğin, 10 saniye)
                 time.sleep(10)
 
-        except Exception as e:
-            print(f"Error in trading: {e}")
+      except Exception as e:
+        print(f"Error in trading: {e}")
 
+def get_price_data(coin, interval="5m"):
+    klines = client.get_historical_klines(f"{coin}USDT", interval, "1 day ago UTC")
+    df = pd.DataFrame(klines, columns=[
+        "Open Time", "Open", "High", "Low", "Close", "Volume",
+        "Close Time", "Quote Asset Volume", "Number of Trades",
+        "Taker Buy Base Asset Volume", "Taker Buy Quote Asset Volume", "Ignore"
+    ])
+    df["Close"] = pd.to_numeric(df["Close"], errors="coerce")  # dtype dönüşümünü kontrol et
+    df.dropna(subset=["Close"], inplace=True) #Bozuk olanları çıkart.
+    df["Date"] = pd.to_datetime(df["Open Time"], unit="ms")
+    df.set_index("Date", inplace=True)
+    return df
+
+
+def update_price_history(symbol, interval="5m", days=1):
+    """Fiyat geçmişini güncelle."""
+    start_time = datetime.now(timezone.utc) - timedelta(days=days)
+    klines = client.get_historical_klines(symbol, interval, start_str=str(start_time))
+    df = pd.DataFrame(klines, columns=[
+        "Open Time", "Open", "High", "Low", "Close", "Volume",
+        "Close Time", "Quote Asset Volume", "Number of Trades",
+        "Taker Buy Base Asset Volume", "Taker Buy Quote Asset Volume", "Ignore"
+    ])
+    df["Close"] = pd.to_numeric(df["Close"])
+    df["Date"] = pd.to_datetime(df["Open Time"], unit="ms")
+    df.set_index("Date", inplace=True)
+    return df[["Close", "High", "Low"]]
+
+
+def buy_process(curr_price, indicator):
+    global eth_coins, balance, state
+    num_coins_to_buy = balance / curr_price
+    eth_coins += num_coins_to_buy
+    balance -= num_coins_to_buy * curr_price
+    log_trade("Buy", curr_price, num_coins_to_buy, indicator)
+    state = 1
+
+    
+def sell_process(curr_price, indicator):
+    global eth_coins, balance, state
+    profit = eth_coins * curr_price
+    log_trade("Sell", curr_price, eth_coins, indicator)
+    balance += profit
+    eth_coins = 0
+    logging.info(f"Profit: {profit - INITIAL_BALANCE}")
+    state = 0
