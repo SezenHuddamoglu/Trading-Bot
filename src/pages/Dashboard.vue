@@ -1,6 +1,12 @@
 <template>
   <div>
     <CoinList :coins="coins" />
+    <Backtest
+        :coin="coinList"
+        :indicators="indicators"
+        :indicator-values="indicatorValue"
+        :intervals="intervals"
+        :trades="trades"/>
     <div v-for="coin in coinList" :key="coin.id" class="coin-section">
       <ControlBar
         :coin="coin.name"
@@ -18,6 +24,7 @@ import { fetchCoins, fetchTrades } from '../services/api'
 import CoinList from '../components/CoinList.vue'
 import ControlBar from '../components/ControlBar.vue'
 import { ref } from 'vue'
+import Backtest from '../components/Backtest.vue'
 export default {
   name: 'DashboardPage',
   components: { CoinList, ControlBar },
@@ -34,7 +41,7 @@ export default {
       coins: [],
       trades: [], // İşlemler
       indicators: ['RSI', 'MACD', 'Bollinger Bands'], // İndikatör türleri
-
+      indicatorValue:{ upper: 70, lower: 30}
       // ref kullanarak
       indicatorValues: ref<{ [key: string]: { upper: number; lower: number } }>({
         ETH: { upper: 70, lower: 30 },
