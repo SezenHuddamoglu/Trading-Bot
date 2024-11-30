@@ -10,6 +10,14 @@
       :initialBalance="''"
       :trades="backtests"
     />
+    <div class="start-all">
+
+      <p class="text">Tüm coinler ile trade'i başlatmak için tıklayın</p>
+      <button class="update-button">Start</button>
+
+
+
+    </div>
     <div v-for="coin in coinList" :key="coin.name" class="coin-section">
       <ControlBar
         :coin="coin.name"
@@ -19,6 +27,8 @@
         :trades="tradesByCoin[coin.name] || []"
       />
     </div>
+
+
   </div>
 </template>
 
@@ -121,4 +131,36 @@ export default {
 .coin-section {
   margin-bottom: 1rem;
 }
+.start-all {
+  margin-top:100px;
+  gap:32px;
+  display: flex;              /* Elemanları yan yana yerleştirir */
+  justify-content: flex-end;  /* Sağ tarafa hizalar */
+  align-items: center;        /* Dikeyde ortalar */
+  width: 100%;
+
+   /* Container'ın genişliği tam olarak 100% */
+  .text {
+  color: aliceblue;
+  font-size: 16px;
+  padding: 4px;
+  margin-right: 20px;         /* Metin ile buton arasına daha fazla boşluk ekler */
+  }
+
+  .update-button {
+  background-color: aliceblue;
+  color: #06121e;
+  width: 200px;
+  height: 50px;
+  border-radius: 16px;
+  border: 1.5px solid aliceblue;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 10px 20px;
+  }
+}
+
+
+
 </style>

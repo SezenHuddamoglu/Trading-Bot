@@ -111,7 +111,7 @@ export default {
     color: white; /* Başlık rengini beyaz yap */
     font-family: Arial, sans-serif;
     text-align: start;
-    font-size: 20px;
+    font-size: 25px;
   }
   .bar {
     display: flex;

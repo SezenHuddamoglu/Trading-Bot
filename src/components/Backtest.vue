@@ -116,12 +116,13 @@ export default {
   display: flex;
   flex-direction: column;
   color: aliceblue;
-  margin-top: 1rem;
+  margin-top: 100px;
+
   h2 {
-    color: white; /* Başlık rengini beyaz yap */
+    color: aliceblue; /* Başlık rengini beyaz yap */
     font-family: Arial, sans-serif;
     text-align: start;
-    font-size: 20px;
+    font-size: 25px;
   }
   .bar {
     display: flex;
