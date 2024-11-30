@@ -6,20 +6,21 @@
 </template>
 
 <script lang="ts">
-import { createChart } from 'lightweight-charts'
+import { createChart, type IChartApi, type ISeriesApi, LineData, Time } from 'lightweight-charts'
+import { Trade } from '../types/Trade'
 
 export default {
   name: 'TradeChart',
   props: {
     trades: {
-      type: Array,
+      type: Array as () => Trade[], // `trades`'in doğru türü belirtildi
       required: true,
     },
   },
   data() {
     return {
-      chart: null,
-      lineSeries: null,
+      chart: null as IChartApi | null,
+      lineSeries: null as ISeriesApi<'Line'> | null,
     }
   },
   watch: {
@@ -36,32 +37,34 @@ export default {
   },
   methods: {
     initializeChart() {
-      // Chart'ı başlat
-      const container = this.$refs.chartContainer
+      const container = this.$refs.chartContainer as HTMLDivElement
       this.chart = createChart(container, {
         width: container.clientWidth,
         height: container.clientHeight,
-        backgroundColor: 'black', // Grafik arkaplanını siyah yap
+        layout: {
+          background: '#fff', // Arka plan rengi için doğru kullanım
+          textColor: '#d1d4dc',
+        },
         crosshair: {
           vertLine: {
             visible: true,
             width: 1,
-            color: '#FFFFFF', // Çizgilerin rengini beyaz yap
+            color: '#FFFFFF',
             style: 1,
           },
           horzLine: {
             visible: true,
             width: 1,
-            color: '#FFFFFF', // Çizgilerin rengini beyaz yap
+            color: '#FFFFFF',
             style: 1,
           },
         },
         grid: {
           vertLines: {
-            color: '#333333', // Kılavuz çizgilerinin rengini gri yap
+            color: '#333333',
           },
           horzLines: {
-            color: '#333333', // Kılavuz çizgilerinin rengini gri yap
+            color: '#333333',
           },
         },
         timeScale: {
@@ -69,74 +72,62 @@ export default {
           secondsVisible: false,
         },
         priceScale: {
-          borderColor: '#f0f0f0', // Fiyat ölçeği sınırını beyaz yap
+          borderColor: '#f0f0f0',
+        },
+        priceFormat: {
+          type: 'custom',
+          formatter: (price: number) => `$${price.toFixed(2)}`,
         },
       })
 
-      // LineSeries ekle
       this.lineSeries = this.chart.addLineSeries({
-        color: 'navy', // Eğri rengini lacivert yap
+        color: 'navy',
         lineWidth: 2,
       })
 
-      // Başlangıçta grafiği güncelle
       this.updateChart()
     },
     updateChart() {
       if (!this.lineSeries) return
 
-      // Verileri TradingView formatına dönüştür
-      const data = this.trades.map((trade) => ({
-        time: Math.floor(new Date(trade.timestamp).getTime() / 1000), // Timestamp'i saniyeye dönüştür
-        value: trade.price, // Fiyat
+      // `trade`'in türünü Trade olarak belirledik ve doğru türde zaman verisi kullandık
+      const data: LineData<Time>[] = this.trades.map((trade) => ({
+        time: Math.floor(new Date(trade.timestamp).getTime() / 1000) as Time, // `time` değerini doğru türde belirledik
+        value: trade.price,
       }))
 
-      // LineSeries'i güncelle
       this.lineSeries.setData(data)
 
-      // Buy ve Sell işaretlerini ekle
       this.addMarkers()
     },
     addMarkers() {
-      // Buy ve Sell noktaları eklemek için örnek veriler
       const markers = this.trades
         .map((trade) => {
-          let marker = null
           if (trade.action === 'buy') {
-            marker = {
-              time: Math.floor(new Date(trade.timestamp).getTime() / 1000),
+            return {
+              time: Math.floor(new Date(trade.timestamp).getTime() / 1000) as Time, // `time`'ı doğru türde belirledik
               position: 'belowBar',
-              color: 'green', // Buy işareti için yeşil renk
-              shape: 'triangleUp', // Yukarı üçgen
+              color: 'green',
+              shape: 'triangleUp',
               text: 'Buy',
             }
           } else if (trade.action === 'sell') {
-            marker = {
-              time: Math.floor(new Date(trade.timestamp).getTime() / 1000),
+            return {
+              time: Math.floor(new Date(trade.timestamp).getTime() / 1000) as Time, // `time`'ı doğru türde belirledik
               position: 'aboveBar',
-              color: 'red', // Sell işareti için kırmızı renk
-              shape: 'triangleDown', // Aşağı üçgen
+              color: 'red',
+              shape: 'triangleDown',
               text: 'Sell',
             }
           }
-          return marker
+          return null
         })
         .filter((marker) => marker !== null)
 
-      // Add markers to chart manually using addSeries
-      markers.forEach((marker) => {
-        this.chart.addMarker({
-          time: marker.time,
-          position: marker.position,
-          color: marker.color,
-          shape: marker.shape,
-          text: marker.text,
-        })
-      })
+      this.lineSeries?.setMarkers(markers as any) // `setMarkers` için türü `any` olarak belirleyebiliriz çünkü `markers` dizisi karmaşık tip içeriyor
     },
   },
   beforeUnmount() {
-    // Chart örneğini yok et
     if (this.chart) {
       this.chart.remove()
     }
@@ -146,7 +137,7 @@ export default {
 
 <style scoped>
 h2 {
-  color: aliceblue; /* Başlık rengini beyaz yap */
+  color: white;
   font-family: Arial, sans-serif;
   text-align: center;
 }
