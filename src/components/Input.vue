@@ -36,26 +36,29 @@ export default {
   flex-direction: column;
 
   .input-label {
-    font-size: 1rem;
-    font-weight: 600;
     margin-bottom: 0.3rem;
-    color: #d7d7d7;
+    font-size: 14px;
+    margin-right: 4px;
+    color: aliceblue;
   }
 
   .input-field {
     width: 100px;
-    padding: 0.8rem 1.2rem;
     font-size: 1rem;
-    border-radius: 8px;
-    border: 2px solid #ccc;
-    background-color: #f9f9f9;
     outline: none;
     transition: all 0.3s ease;
+
+    background-color: #2c3338; /* Gri bir arka plan rengi */
+    color: aliceblue; /* Beyaz yazı rengi */
+    border: 1px solid #444; /* Gri kenarlık */
+    border-radius: 4px; /* Hafif yuvarlatılmış kenarlar */
+    padding: 4px; /* İçerik ile kenar boşluğu */
+    font-size: 12px; /* Yazı boyutunu küçült */
   }
 
-  .input-field:focus {
-    border-color: #007bff;
-    background-color: #e6f1ff;
+  .input-field :focus {
+    outline: none; /* Odaklandığında varsayılan çerçeve kaldırılır */
+    border: 1px solid aliceblue; /* Odaklandığında kenarlık beyaz olur */
   }
 
   .input-field::placeholder {

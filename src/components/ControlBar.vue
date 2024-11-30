@@ -148,48 +148,7 @@ export default {
       flex-direction: row;
       gap: 8px;
     }
-    .input-field input {
-      background-color: #2c3338; /* Gri bir arka plan rengi */
-      color: aliceblue; /* Beyaz yazı rengi */
-      border: 1px solid #444; /* Gri kenarlık */
-      border-radius: 4px; /* Hafif yuvarlatılmış kenarlar */
-      padding: 4px; /* İçerik ile kenar boşluğu */
-      font-size: 12px; /* Yazı boyutunu küçült */
-    }
 
-    .input-field label {
-      font-size: 14px;
-      margin-right: 4px;
-      color: aliceblue;
-    }
-    .input-field input:focus,
-    .dropdown select:focus {
-      outline: none; /* Odaklandığında varsayılan çerçeve kaldırılır */
-      border: 1px solid aliceblue; /* Odaklandığında kenarlık beyaz olur */
-    }
-    .dropdown select {
-      background-color: #2c3338; /* Gri bir arka plan rengi */
-      color: aliceblue; /* Beyaz yazı rengi */
-      border: 1px solid #444; /* Gri kenarlık */
-      border-radius: 4px; /* Hafif yuvarlatılmış kenarlar */
-      padding: 4px; /* İçerik ile kenar boşluğu */
-      font-size: 14px; /* Yazı boyutunu küçült */
-    }
-    .dropdown input {
-      width: 100px; /* Genişliği azaltarak daha ince görünmesini sağlayın */
-      height: 30px; /* Yüksekliği azaltın */
-      padding: 4px 8px; /* İçerik ile kenar arasındaki boşluğu küçültün */
-      font-size: 14px; /* Yazı boyutunu küçültün */
-      border: 1px solid #ccc; /* İnce bir kenarlık ekleyin */
-      border-radius: 4px; /* Hafif yuvarlatılmış köşeler */
-      background-color: #1b2126; /* Arka plan rengini aynı temaya uygun hale getirin */
-      color: aliceblue;
-    }
-    .dropdown label {
-      font-size: 14px;
-      margin-right: 4px;
-      color: aliceblue;
-    }
     .graph-area {
       margin-top: 1rem;
     }
