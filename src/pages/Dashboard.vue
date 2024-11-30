@@ -9,13 +9,13 @@
       :intervals="intervals"
       :trades="backtests"
     />
-    <div v-for="coin in coinList" :key="coin.id" class="coin-section">
+    <div v-for="coin in coinList" :key="coin.name" class="coin-section">
       <ControlBar
         :coin="coin.name"
         :indicators="indicators"
         :indicator-values="indicatorValues[coin.name]"
         :intervals="intervals"
-        :trades="trades"
+        :trades="tradesByCoin[coin.name] || []"
       />
     </div>
   </div>
@@ -25,8 +25,9 @@
 import { fetchCoins, fetchTrades } from '../services/api'
 import CoinList from '../components/CoinList.vue'
 import ControlBar from '../components/ControlBar.vue'
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import Backtest from '../components/Backtest.vue'
+
 export default {
   name: 'DashboardPage',
   components: { CoinList, ControlBar, Backtest },
@@ -42,12 +43,13 @@ export default {
       ],
       backtestCoins: ['ETH', 'BTC', 'BNB', 'SOL', 'XRB', 'DOGE'],
       coins: [],
+      tradesByCoin: reactive<{ [key: string]: any[] }>({}),
       backtests: [],
       trades: [], // İşlemler
       indicators: ['RSI', 'MACD', 'Bollinger Bands'], // İndikatör türleri
 
       // ref kullanarak
-      indicatorValues: ref<{ [key: string]: { upper: number; lower: number } }>({
+      indicatorValues: ref({
         ETH: { upper: 70, lower: 30 },
         BTC: { upper: 60, lower: 40 },
         BNB: { upper: 70, lower: 30 },
@@ -60,12 +62,24 @@ export default {
       intervals: ['1m', '5m', '15m', '30m', '45m', '1h'],
     }
   },
+  computed: {
+    tradesByCoinComputed() {
+      // Gereksizse tradesByCoin için kullanılabilir.
+      return this.tradesByCoin
+    },
+  },
   methods: {
     async fetchAllData() {
       try {
         this.coins = await fetchCoins()
         this.trades = await fetchTrades()
-
+        for (const coin of this.coinList) {
+          if (!this.tradesByCoin[coin.name]) {
+            this.tradesByCoin[coin.name] = [] // Başlangıç değeri belirle
+          }
+          const trades = await fetchTrades(coin.name)
+          this.tradesByCoin[coin.name] = trades
+        }
         // Her coin için varsayılan değerleri tanımla
       } catch (error) {
         console.error('fetchAllData başarısız:', error)
@@ -75,17 +89,17 @@ export default {
         }
       }
     },
-    updateGraph({
-      coin,
-      indicator,
-      values,
-    }: {
-      coin: string
-      indicator: string
-      values: { upper: number; lower: number }
-    }) {
-      console.log('Graph updated for:', { coin, indicator, values })
-    },
+    // updateGraph({
+    //   coin,
+    //   indicator,
+    //   values,
+    // }: {
+    //   coin: string
+    //   indicator: string
+    //   values: { upper: number; lower: number }
+    // }) {
+    //   console.log('Graph updated for:', { coin, indicator, values })
+    // },
   },
   mounted() {
     this.fetchAllData()
