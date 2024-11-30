@@ -2,11 +2,13 @@
   <div>
     <CoinList :coins="coins" />
     <Backtest
-        :coin="coinList"
-        :indicators="indicators"
-        :indicator-values="indicatorValue"
-        :intervals="intervals"
-        :trades="trades"/>
+      :coinList="backtestCoins"
+      :indicators="indicators"
+      upper=""
+      lower=""
+      :intervals="intervals"
+      :trades="backtests"
+    />
     <div v-for="coin in coinList" :key="coin.id" class="coin-section">
       <ControlBar
         :coin="coin.name"
@@ -27,7 +29,7 @@ import { ref } from 'vue'
 import Backtest from '../components/Backtest.vue'
 export default {
   name: 'DashboardPage',
-  components: { CoinList, ControlBar },
+  components: { CoinList, ControlBar, Backtest },
   data() {
     return {
       coinList: [
@@ -38,10 +40,12 @@ export default {
         { id: 5, name: 'XRB' },
         { id: 6, name: 'DOGE' },
       ],
+      backtestCoins: ['ETH', 'BTC', 'BNB', 'SOL', 'XRB', 'DOGE'],
       coins: [],
+      backtests: [],
       trades: [], // İşlemler
       indicators: ['RSI', 'MACD', 'Bollinger Bands'], // İndikatör türleri
-      indicatorValue:{ upper: 70, lower: 30}
+
       // ref kullanarak
       indicatorValues: ref<{ [key: string]: { upper: number; lower: number } }>({
         ETH: { upper: 70, lower: 30 },

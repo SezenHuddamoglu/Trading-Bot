@@ -1,8 +1,7 @@
 <template>
   <div class="backtest-bar">
-    <h2>Control</h2>
+    <h2>Backtest Control</h2>
     <div class="bar">
-
       <Dropdown
         class="dropdown"
         id="coin"
@@ -22,16 +21,16 @@
 
       <!-- Input Field for RSI -->
       <div class="input-field" v-if="selectedIndicator === 'RSI'">
-        <UIInput v-model="upper" label="Upper Bound:" />
-        <UIInput v-model="lower" label="Lower Bound: " />
+        <UIInput v-model="upperData" label="Upper Bound:" />
+        <UIInput v-model="lowerData" label="Lower Bound: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'MACD'">
-        <UIInput v-model="upper" label="High Price:" />
-        <UIInput v-model="lower" label="Close Price: " />
+        <UIInput v-model="upperData" label="High Price:" />
+        <UIInput v-model="lowerData" label="Close Price: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'Bollinger Bands'">
-        <UIInput v-model="upper" label="Upper Band:" />
-        <UIInput v-model="lower" label="Lower Band: " />
+        <UIInput v-model="upperData" label="Upper Band:" />
+        <UIInput v-model="lowerData" label="Lower Band: " />
       </div>
 
       <!-- Time Interval Dropdown -->
@@ -44,12 +43,12 @@
       />
 
       <!-- Update Graph Button -->
-      <button class="update-button" @click="updateGraph">Start</button>
+      <button class="update-button">Start</button>
     </div>
     <div class="results">
       <!-- Price Chart and Trade History -->
-      <TradeChart :trades="trades" />
-      <TradeHistory :trades="trades" />
+      <!-- <TradeChart :trades="trades" />
+      <TradeHistory :trades="trades" /> -->
     </div>
   </div>
 </template>
@@ -57,55 +56,52 @@
 <script lang="ts">
 import Dropdown from './Dropdown.vue'
 import UIInput from './Input.vue'
-import TradeChart from './TradeChart.vue'
-import TradeHistory from './TradeHistory.vue'
-import axios from 'axios'
+// import TradeChart from './TradeChart.vue'
+// import TradeHistory from './TradeHistory.vue'
 
 export default {
   name: 'ControlBar',
   components: {
     Dropdown,
     UIInput,
-    TradeChart,
-    TradeHistory,
+    // TradeChart,
+    // TradeHistory,
   },
   props: {
     coinList: { type: Array as () => string[], required: true },
     indicators: { type: Array as () => string[], required: true },
-    upper:{ type: String, required: true },
-    lower:{ type: String, required: true },
+    upper: { type: String, required: true },
+    lower: { type: String, required: true },
     intervals: { type: Array as () => string[], required: true },
     trades: { type: Array as () => object[], required: true },
   },
   data() {
     return {
-      selectedCoin:'ETH'
-      selectedCoin: 'RSI',
+      selectedCoin: 'ETH',
+      selectedIndicator: 'RSI',
       selectedInterval: '5m',
-      upper: this.indicatorValue.upper || 70,
-      lower: this.indicatorValue.lower || 30,
+      upperData: 70,
+      lowerData: 30,
       localTrades: [], // Coin özelinde trade geçmişi
     }
   },
   methods: {
-    async updateGraph() {
-      const payload = {
-        coin: this.coin,
-        indicator: this.selectedIndicator,
-        upper: this.upper,
-        lower: this.lower,
-        interval: this.selectedInterval,
-      }
-
-      console.log('Graph updated for:', payload)
-
-      try {
-        const response = await axios.post('/api/updateGraph', payload)
-        this.localTrades = response.data.trades // Backend'den gelen trade verilerini güncelle
-      } catch (error) {
-        console.error('Error updating graph:', error)
-      }
-    },
+    // async updateGraph() {
+    //   const payload = {
+    //     coin: this.coin,
+    //     indicator: this.selectedIndicator,
+    //     upper: this.upper,
+    //     lower: this.lower,
+    //     interval: this.selectedInterval,
+    //   }
+    //   console.log('Graph updated for:', payload)
+    //   try {
+    //     const response = await axios.post('/api/updateGraph', payload)
+    //     this.localTrades = response.data.trades // Backend'den gelen trade verilerini güncelle
+    //   } catch (error) {
+    //     console.error('Error updating graph:', error)
+    //   }
+    // },
   },
 }
 </script>
@@ -134,7 +130,7 @@ export default {
     flex-direction: row;
     justify-content: space-evenly;
     align-items: center;
-    width:;
+
     height: 40px;
     .coin-name {
       font-size: 16px;
