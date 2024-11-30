@@ -211,12 +211,10 @@ def trading_loop(coin, indicator, upper, lower, interval):
                 print(f"RSI for {coin}: {rsi}")
                 if coin_states[coin]== 0 and rsi < lower:
                     print("RSI: BUY signal triggered")
-
                     buy_process(curr_price, indicator,coin)
                 elif coin_states[coin] == 1 and rsi > upper:
                     print("RSI: SELL signal triggered")
                     sell_process(curr_price, indicator,coin)
-
                 else:
                     log_hold_state(curr_price, indicator)
 
@@ -224,12 +222,12 @@ def trading_loop(coin, indicator, upper, lower, interval):
                 macd, macd_signal = compute_macd(close_prices)
                 print(f"MACD for {coin}: {macd}, Signal: {macd_signal}")
                 if coin_states[coin] == 0 and macd > macd_signal:
+                    print("MACD: BUY signal triggered")
 
                     buy_process(curr_price, indicator,coin)
                 elif coin_states[coin] == 1 and macd < macd_signal:
                     print("MACD: SELL signal triggered")
                     sell_process(curr_price, indicator,coin)
-
                 else:
                     log_hold_state(curr_price, indicator)
 
@@ -238,12 +236,10 @@ def trading_loop(coin, indicator, upper, lower, interval):
                 print(f"Bollinger Bands for {coin}: Lower {lower_band}, Upper {upper_band}")
                 if coin_states[coin]== 0 and curr_price <= lower_band:
                     print("Bollinger: BUY signal triggered")
-
                     buy_process(curr_price, indicator,coin)
                 elif coin_states[coin]== 1 and curr_price >= upper_band:
                     print("Bollinger: SELL signal triggered")
                     sell_process(curr_price, indicator,coin)
-
                 else:
                     log_hold_state(curr_price, indicator)
 
@@ -299,4 +295,3 @@ def sell_process(curr_price, indicator, coin):
     balance += profit
     eth_coins = 0
     coin_states[coin] = 0  # Alım bekleniyor
-
