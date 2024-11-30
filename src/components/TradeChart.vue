@@ -146,7 +146,7 @@ export default {
 
 <style scoped>
 h2 {
-  color: white; /* Başlık rengini beyaz yap */
+  color: aliceblue; /* Başlık rengini beyaz yap */
   font-family: Arial, sans-serif;
   text-align: center;
 }

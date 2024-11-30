@@ -57,7 +57,10 @@ td {
   text-align: center;
 }
 h2 {
-  color: #f2f2f2;
+   color: aliceblue; /* Başlık rengini beyaz yap */
+    font-family: Arial, sans-serif;
+    text-align: start;
+    font-size: 25px;
 }
 th {
   background-color: #f2f2f2;
