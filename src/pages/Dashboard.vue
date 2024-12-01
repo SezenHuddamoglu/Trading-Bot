@@ -11,15 +11,12 @@
       :trades="backtests"
     />
     <div class="start-all">
-
       <p class="text">Tüm coinler ile trade'i başlatmak için tıklayın</p>
-      <button class="update-button">Start</button>
-
-
-
+      <button class="update-button" @click="startAll">Start</button>
     </div>
     <div v-for="coin in coinList" :key="coin.name" class="coin-section">
       <ControlBar
+        ref="controlBars"
         :coin="coin.name"
         :indicators="indicators"
         :indicator-values="indicatorValues[coin.name]"
@@ -27,8 +24,6 @@
         :trades="tradesByCoin[coin.name] || []"
       />
     </div>
-
-
   </div>
 </template>
 
@@ -59,9 +54,17 @@ export default {
 
       backtests: [],
       trades: [], // İşlemler
-      indicators: ['RSI', 'MACD', 'Bollinger Bands','Moving Average',
-      'Exponential Moving Average','Stochastic RSI','Average Directional Index',
-      'Volume Weighted Average Price','Commodity Channel Index'], // İndikatör türleri
+      indicators: [
+        'RSI',
+        'MACD',
+        'Bollinger Bands',
+        'Moving Average',
+        'Exponential Moving Average',
+        'Stochastic RSI',
+        'Average Directional Index',
+        'Volume Weighted Average Price',
+        'Commodity Channel Index',
+      ], // İndikatör türleri
 
       // ref kullanarak
       indicatorValues: ref<{
@@ -105,6 +108,16 @@ export default {
         }
       }
     },
+    startAll() {
+      const controlBars = this.$refs.controlBars
+      if (Array.isArray(controlBars)) {
+        controlBars.forEach((controlBar) => {
+          if (controlBar && typeof controlBar.start === 'function') {
+            controlBar.start()
+          }
+        })
+      }
+    },
     // updateGraph({
     //   coin,
     //   indicator,
@@ -134,35 +147,33 @@ export default {
   margin-bottom: 1rem;
 }
 .start-all {
-  margin-top:100px;
-  gap:32px;
-  display: flex;              /* Elemanları yan yana yerleştirir */
-  justify-content: flex-end;  /* Sağ tarafa hizalar */
-  align-items: center;        /* Dikeyde ortalar */
+  margin-top: 100px;
+  gap: 32px;
+  display: flex; /* Elemanları yan yana yerleştirir */
+  justify-content: flex-end; /* Sağ tarafa hizalar */
+  align-items: center; /* Dikeyde ortalar */
   width: 100%;
 
-   /* Container'ın genişliği tam olarak 100% */
+  /* Container'ın genişliği tam olarak 100% */
   .text {
-  color: aliceblue;
-  font-size: 16px;
-  padding: 4px;
-  margin-right: 20px;         /* Metin ile buton arasına daha fazla boşluk ekler */
+    color: aliceblue;
+    font-size: 16px;
+    padding: 4px;
+    margin-right: 20px; /* Metin ile buton arasına daha fazla boşluk ekler */
   }
 
   .update-button {
-  background-color: aliceblue;
-  color: #06121e;
-  width: 200px;
-  height: 50px;
-  border-radius: 16px;
-  border: 1.5px solid aliceblue;
-  text-align: center;
-  font-size: 18px;
-  font-weight: 600;
-  padding: 10px 20px;
+    background-color: aliceblue;
+    color: #06121e;
+    width: 200px;
+    height: 50px;
+    border-radius: 16px;
+    border: 1.5px solid aliceblue;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 10px 20px;
+    cursor: pointer;
   }
 }
-
-
-
 </style>
