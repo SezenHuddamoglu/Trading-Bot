@@ -59,7 +59,7 @@ export default {
 
       backtests: [],
       trades: [], // İşlemler
-      indicators: ['RSI', 'MACD', 'Bollinger Bands'], // İndikatör türleri
+      indicators: ['RSI', 'MACD', 'Bollinger Bands','Moving Average','Exponential Moving Average'], // İndikatör türleri
 
       // ref kullanarak
       indicatorValues: ref<{
