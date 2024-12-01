@@ -30,68 +30,6 @@ coin_states = {}  # Her coin için state saklanacak
 stop_signals = {}
 
 
-def perform_backtest(data, initial_balance, indicator_type, lower_limit, upper_limit, interval):
-    """
-    Çoklu coin ve indikatörlere göre backtest fonksiyonu.
-    """
-    balance = initial_balance
-    coins = 0
-    trades = []
-    state = 0  # 0: No position, 1: Holding coins
-
-    # Veriyi belirli interval ile yeniden örnekleme
-    data = data.resample(interval).mean()  # Örneğin '1h', '15m' gibi
-
-    for i in range(len(data) - 1):
-        current_price = data['Close'].iloc[i]
-        indicator_value = None
-
-        # Seçilen indikatöre göre değer hesaplama
-        if indicator_type == "RSI":
-            recent_data = data['Close'].iloc[max(0, i-14):i+1]
-            indicator_value = compute_rsi(recent_data, 14)  # RSI hesaplama fonksiyonu
-        elif indicator_type == "MACD":
-            macd, signal = compute_macd(data['Close'].iloc[:i+1])
-            indicator_value = macd - signal
-        elif indicator_type == "Bollinger":
-            sma, upper_band, lower_band = compute_bollinger_bands(data['Close'].iloc[:i+1])
-            indicator_value = (current_price - sma) / (upper_band - lower_band)
-
-        # İşlem mantığı
-        if state == 0 and indicator_value is not None and indicator_value < lower_limit:  # BUY sinyali
-            coins = balance / current_price
-            balance -= coins * current_price
-            trades.append({"action": "BUY", "price": current_price, "balance": balance, "indicator_value": indicator_value})
-            state = 1
-        elif state == 1 and indicator_value is not None and indicator_value > upper_limit:  # SELL sinyali
-            balance += coins * current_price
-            coins = 0
-            trades.append({"action": "SELL", "price": current_price, "balance": balance, "indicator_value": indicator_value})
-            state = 0
-
-    # Son bakiye
-    final_balance = balance + coins * data['Close'].iloc[-1]
-    return {"trades": trades, "final_balance": final_balance}
-
-def load_historical_data(symbol,interval):
-    symbol = symbol.upper() + "USDT"
-    klines = client.get_historical_klines(
-    symbol=symbol,
-    interval=interval,
-    start_str=str(datetime.now(timezone.utc) - timedelta(days=120)),  # 120 gün = 4 ay
-    end_str=str(datetime.now(timezone.utc))
-    )
-    df = pd.DataFrame(klines, columns=[
-        "Open Time", "Open", "High", "Low", "Close", "Volume",
-        "Close Time", "Quote Asset Volume", "Number of Trades",
-        "Taker Buy Base Asset Volume", "Taker Buy Quote Asset Volume", "Ignore"
-    ])
-    df["Close"] = pd.to_numeric(df["Close"])
-    df["Date"] = pd.to_datetime(df["Open Time"], unit="ms")
-    df.set_index("Date", inplace=True)
-    return df
-
-# RSI Hesaplama
 def compute_rsi(data, period):
     diff = np.diff(data)
     gain = np.maximum(diff, 0)
@@ -117,6 +55,16 @@ def compute_bollinger_bands(data, window=20, num_std_dev=2):
     upper_band = rolling_mean + (rolling_std * num_std_dev)
     lower_band = rolling_mean - (rolling_std * num_std_dev)
     return upper_band.iloc[-1], lower_band.iloc[-1]
+
+def compute_ma(prices, period):
+    return prices[-period:].mean()
+
+def compute_ema(prices, period):
+    multiplier = 2 / (period + 1)
+    ema = prices[0]
+    for price in prices[1:]:
+        ema = (price - ema) * multiplier + ema
+    return ema
 
 # İşlem kaydı
 def log_trade(action, price, amount, indicator, coin):
@@ -238,7 +186,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
                 else:
                     log_hold_state(curr_price, indicator)
 
-            elif indicator == "Bollinger":
+            elif indicator == "Bollinger Bands":
                 upper_band, lower_band = compute_bollinger_bands(df)
                 print(f"Bollinger Bands for {coin}: Lower {lower_band}, Upper {upper_band}")
                 if coin_states[coin]== 0 and curr_price <= lower_band:
@@ -249,6 +197,31 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     sell_process(curr_price, indicator,coin)
                 else:
                     log_hold_state(curr_price, indicator)
+                    
+            elif indicator == "Moving Average":
+                ma = compute_ma(close_prices.values, MA_PERIOD)
+                print(f"MA for {coin}: {ma}")
+                if coin_states[coin] == 0 and curr_price > ma:
+                    print("MA: BUY signal triggered")
+                    buy_process(curr_price, indicator, coin)
+                elif coin_states[coin] == 1 and curr_price < ma:
+                    print("MA: SELL signal triggered")
+                    sell_process(curr_price, indicator, coin)
+                else:
+                    log_hold_state(curr_price, indicator)
+
+            elif indicator == " Exponential Moving Average":
+                ema = compute_ema(close_prices.values, EMA_PERIOD)
+                print(f"EMA for {coin}: {ema}")
+                if coin_states[coin] == 0 and curr_price > ema:
+                    print("EMA: BUY signal triggered")
+                    buy_process(curr_price, indicator, coin)
+                elif coin_states[coin] == 1 and curr_price < ema:
+                    print("EMA: SELL signal triggered")
+                    sell_process(curr_price, indicator, coin)
+                else:
+                    log_hold_state(curr_price, indicator)
+      
 
             logging.info(f"Trading Status: Current Price: {curr_price} | Indicator: {indicator}")
 

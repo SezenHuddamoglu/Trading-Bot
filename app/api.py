@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 import logging
-from app.trading import start_trading, reset_trades
 from app.trading import start_trading, reset_trades, get_trade_history
+import pandas as pd
+
 
 api = Blueprint('api', __name__)
 
