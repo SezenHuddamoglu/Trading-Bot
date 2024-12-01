@@ -2,19 +2,7 @@
   <div>
     <header>
       <div class="header-content">
-        <div class="logos">
-          <div class="logo logo1"></div>
-          <img :src="`./src/assets/BNB-arma.png`" />
-          <img src="./src/assets/SOL-arma.png" alt="Logo 2" />
-          <img src="./src/assets/DOGE-arma.png" alt="Logo 3" />
-        </div>
         <h1>Coin Dashboard</h1>
-        <div class="logos">
-          <img src="./src/assets/BTC-arma.png" alt="Logo 4" />
-          <img src="./src/assets/ETH-arma.png" alt="Logo 5" />
-          <img src="./src/assets/XRP-arma.png" alt="Logo 6" />
-        </div>
-
       </div>
 
     </header>
@@ -66,7 +54,7 @@ h1 {
 
 footer {
   /* background-color: #06121e; */
-  background-color: #1b0d5e;
+  background-color: #0B192C;
   color: whitesmoke;
   text-align: center;
   padding: 1rem;
@@ -75,7 +63,7 @@ footer {
   width: 100%;
 }
 main {
-  background-color:#1b0d5e;
+  background-color:#0B192C;
   padding: 2rem;
   margin-bottom: 60px; /* Footer için boşluk */
 }
