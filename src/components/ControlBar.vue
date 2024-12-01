@@ -32,6 +32,22 @@
       <div class="input-field" v-if="selectedIndicator === 'Exponential Moving Average'">
         <UIInput v-model="upper" label="Period:" />
       </div>
+      <div class="input-field" v-if="selectedIndicator === 'Stochastic RSI'">
+        <UIInput v-model="upper" label="Upper Bound:" />
+        <UIInput v-model="lower" label="Lower Bound: " />
+      </div>
+      <div class="input-field" v-if="selectedIndicator === 'Average Directional Index'">
+        <UIInput v-model="upper" label="Strong Trend:" />
+        <UIInput v-model="lower" label="Weak Trend: " />
+      </div>
+      <div class="input-field" v-if="selectedIndicator === 'Volume Weighted Average Price'">
+        <UIInput v-model="lower" label="Weak Trend: " />
+      </div>
+      <div class="input-field" v-if="selectedIndicator === 'Commodity Channel Index'">
+        <UIInput v-model="upper" label="Overbougth:" />
+        <UIInput v-model="lower" label="Oversold: " />
+      </div>
+
 
       <!-- Time Interval Dropdown -->
       <Dropdown
