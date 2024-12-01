@@ -56,7 +56,7 @@ def get_trades():
 def get_coins():
     
     from app.trading import get_current_prices
-    target_coins = ["BNB", "BTC", "ETH", "DOGE", "SOL", "XRP"]
+    target_coins = ["ETH", "BTC", "AVA", "FET", "SOL", "RENDER"]
     """
     Get the current prices of the target coins
     ---
