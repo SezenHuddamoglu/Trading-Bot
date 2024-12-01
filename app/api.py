@@ -133,3 +133,6 @@ def update_graph():
     start_trading(coin, indicator, upper, lower, interval)
 
     return {"message": f"{coin} için ticaret algoritması güncellendi ve yeniden başlatıldı"}, 200
+ 
+ 
+  
