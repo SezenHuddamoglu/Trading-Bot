@@ -144,7 +144,7 @@ export default {
     gap: 16px;
     margin-bottom: 1rem;
     padding: 1rem;
-    background-color: #1b2126;
+    background-color: #35374B;
     color: aliceblue;
     border-radius: 8px;
     text-align: center;
@@ -156,7 +156,7 @@ export default {
     .coin-name {
       font-size: 16px;
       font-weight: 600;
-      color: yellow;
+      color: #F0B90B;
     }
     button {
       background: radial-gradient(circle, #434f63, #2e3842);

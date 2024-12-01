@@ -129,7 +129,7 @@ export default {
     gap: 16px;
     margin-bottom: 1rem;
     padding: 1rem;
-    background-color: #1b2126;
+    background-color: #35374B;
     color: aliceblue;
     border-radius: 8px;
     text-align: center;
