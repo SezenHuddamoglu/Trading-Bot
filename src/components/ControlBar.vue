@@ -107,6 +107,7 @@ export default {
   flex-direction: column;
   color: aliceblue;
   margin-top: 1rem;
+  /*background: linear-gradient(135deg, #2e3b4e, #4f5b6e);*/
   h2 {
     color: white; /* Başlık rengini beyaz yap */
     font-family: Arial, sans-serif;
@@ -133,7 +134,7 @@ export default {
       color: yellow;
     }
     button {
-      background-color: #06121e;
+      background: radial-gradient(circle, #434f63, #2e3842);
       color: aliceblue;
       width: 100px;
       height: 40px;

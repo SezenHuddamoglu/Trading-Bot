@@ -65,7 +65,8 @@ h1 {
 }
 
 footer {
-  background-color: #06121e;
+  /* background-color: #06121e; */
+  background-color: #1b0d5e;
   color: whitesmoke;
   text-align: center;
   padding: 1rem;
@@ -74,7 +75,7 @@ footer {
   width: 100%;
 }
 main {
-  background-color:#06121e;
+  background-color:#1b0d5e;
   padding: 2rem;
   margin-bottom: 60px; /* Footer için boşluk */
 }
