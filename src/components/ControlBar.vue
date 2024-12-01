@@ -48,7 +48,6 @@
         <UIInput v-model="lower" label="Oversold: " />
       </div>
 
-
       <!-- Time Interval Dropdown -->
       <Dropdown
         class="dropdown"
@@ -101,6 +100,10 @@ export default {
     }
   },
   methods: {
+    start() {
+      console.log(`${this.coin} için trade başlatıldı.`)
+      this.updateGraph()
+    },
     async updateGraph() {
       const payload = {
         coin: this.coin,
@@ -165,6 +168,7 @@ export default {
       font-size: 14px;
       font-weight: 600;
       padding: 4px;
+      cursor: pointer;
     }
     .input-field {
       display: flex;
