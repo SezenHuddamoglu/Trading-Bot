@@ -7,7 +7,7 @@ const api = axios.create({
 
 export async function fetchCoins() {
   try {
-    const response = await api.get('/coins')
+    const response = await api.get('/api/coins')
     console.log('Gelen veri:', response.data)
     return response.data.coins.map((item: { symbol: string; price: number; change: number }) => ({
       symbol: item.symbol,
@@ -22,7 +22,7 @@ export async function fetchCoins() {
 
 export async function fetchTrades(coin: string) {
   try {
-    const response = await api.get(`/trades/${coin}`)
+    const response = await api.get(`/api/trades/${coin}`)
     console.log('Gelen veri:', response.data)
 
     const trades = Array.isArray(response.data.trades)
