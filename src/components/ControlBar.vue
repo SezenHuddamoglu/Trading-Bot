@@ -26,6 +26,12 @@
         <UIInput v-model="upper" label="Upper Band:" />
         <UIInput v-model="lower" label="Lower Band: " />
       </div>
+      <div class="input-field" v-if="selectedIndicator === 'Moving Average'">
+        <UIInput v-model="upper" label="Period:" />
+      </div>
+      <div class="input-field" v-if="selectedIndicator === 'Exponential Moving Average'">
+        <UIInput v-model="upper" label="Period:" />
+      </div>
 
       <!-- Time Interval Dropdown -->
       <Dropdown
