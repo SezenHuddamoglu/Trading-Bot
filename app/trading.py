@@ -156,7 +156,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
 
             elif indicator == "Bollinger Bands":
                 print("type##########",type(close_prices),"#############")
-                print(close_prices[:i+1].head())
+                #print(close_prices[:i+1].head())  #i is not defined
                 print("#################",df.head(),"#################")
                 upper_band, lower_band = compute_bollinger_bands(df)
                 print(f"Bollinger Bands for {coin}: Lower {lower_band}, Upper {upper_band}")
@@ -303,10 +303,12 @@ def sell_process(curr_price, indicator, coin):
     eth_coins = 0
     coin_states[coin] = 0  # Alım bekleniyor
 
-def backtest_strategy(coin, indicator, upper, lower, interval):
+def backtest_strategy(coin, indicator, upper, lower, interval, initialBalance):
     """
     Perform backtest for a given coin and strategy using various indicators.
     """
+    print(f"Backtest started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}, Initial Balance {initialBalance}")
+
     symbol = f"{coin}USDT"
     df = update_price_history(symbol, interval, days=120)  # 30 günlük veri
     
@@ -322,7 +324,7 @@ def backtest_strategy(coin, indicator, upper, lower, interval):
     
     trades = []
     state = 0  # 0: Alım bekleniyor, 1: Satış bekleniyor
-    initial_balance = 10000
+    initial_balance = initialBalance
     coins_held = 0
     
     for i in range(len(close_prices)):
