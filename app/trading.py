@@ -6,6 +6,7 @@ import threading
 import logging
 from typing import Dict, List
 import time
+from app.indicator_functions import compute_stochastic_rsi,compute_ichimoku,compute_rsi,compute_macd,compute_ema,compute_ma,compute_bollinger_bands,compute_adx,compute_vwap,compute_cci
 
 # Logger yapılandırması
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -19,7 +20,6 @@ client = Client(api_key=api_key, api_secret=secret_key)
 # Ticaret parametreleri
 INITIAL_BALANCE = 10000  # Başlangıç bakiyesi
 LOSS_THRESHOLD = 0.90  # Zarar durdurma eşiği
-RSI_PERIOD = 14
 TRADE_INTERVALS = ["1m", "5m", "15m", "30m", "1h"]
 balance = INITIAL_BALANCE
 eth_coins = 0
@@ -30,41 +30,7 @@ coin_states = {}  # Her coin için state saklanacak
 stop_signals = {}
 
 
-def compute_rsi(data, period):
-    diff = np.diff(data)
-    gain = np.maximum(diff, 0)
-    loss = np.abs(np.minimum(diff, 0))
-    avg_gain = pd.Series(gain).rolling(window=period, min_periods=1).mean()
-    avg_loss = pd.Series(loss).rolling(window=period, min_periods=1).mean()
-    rs = avg_gain / avg_loss
-    rsi = 100 - (100 / (1 + rs))
-    return rsi.iloc[-1]
 
-# MACD Hesaplama
-def compute_macd(prices, short_window=12, long_window=26, signal_window=9):
-    short_ema = prices.ewm(span=short_window, adjust=False).mean()
-    long_ema = prices.ewm(span=long_window, adjust=False).mean()
-    macd = short_ema - long_ema
-    signal = macd.ewm(span=signal_window, adjust=False).mean()
-    return macd.iloc[-1], signal.iloc[-1]
-
-# Bollinger Band Hesaplama
-def compute_bollinger_bands(data, window=20, num_std_dev=2):
-    rolling_mean = data['Close'].rolling(window=window).mean()
-    rolling_std = data['Close'].rolling(window=window).std()
-    upper_band = rolling_mean + (rolling_std * num_std_dev)
-    lower_band = rolling_mean - (rolling_std * num_std_dev)
-    return upper_band.iloc[-1], lower_band.iloc[-1]
-
-def compute_ma(prices, period):
-    return prices[-period:].mean()
-
-def compute_ema(prices, period):
-    multiplier = 2 / (period + 1)
-    ema = prices[0]
-    for price in prices[1:]:
-        ema = (price - ema) * multiplier + ema
-    return ema
 
 # İşlem kaydı
 def log_trade(action, price, amount, indicator, coin):
@@ -146,7 +112,7 @@ def start_trading(coin, indicator, upper, lower, interval):
 
 def trading_loop(coin, indicator, upper, lower, interval):
       """Asıl işlem döngüsü."""
-      print(f"Trading started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}")
+      #print(f"Trading started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}")
     
       try:
         lower = float(lower)
@@ -160,8 +126,8 @@ def trading_loop(coin, indicator, upper, lower, interval):
             close_prices = df["Close"]
             curr_price = close_prices.iloc[-1]
             #print(f'state', coin_states[coin] == 0 )
-
             if indicator == "RSI":
+                RSI_PERIOD = 14
                 rsi = compute_rsi(close_prices.values, RSI_PERIOD)
                 print(f"RSI for {coin}: {rsi}")
                 if coin_states[coin]== 0 and rsi < lower:
@@ -199,7 +165,8 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     log_hold_state(curr_price, indicator)
                     
             elif indicator == "Moving Average":
-                ma = compute_ma(close_prices.values, MA_PERIOD)
+                period=upper
+                ma = compute_ma(close_prices.values, period)
                 print(f"MA for {coin}: {ma}")
                 if coin_states[coin] == 0 and curr_price > ma:
                     print("MA: BUY signal triggered")
@@ -211,7 +178,8 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     log_hold_state(curr_price, indicator)
 
             elif indicator == " Exponential Moving Average":
-                ema = compute_ema(close_prices.values, EMA_PERIOD)
+                period=upper
+                ema = compute_ema(close_prices.values, period)
                 print(f"EMA for {coin}: {ema}")
                 if coin_states[coin] == 0 and curr_price > ema:
                     print("EMA: BUY signal triggered")
@@ -221,8 +189,61 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     sell_process(curr_price, indicator, coin)
                 else:
                     log_hold_state(curr_price, indicator)
-      
-
+                    
+            # elif indicator == "Ichimoku Cloud":
+            #     conv, base, span_a, span_b = compute_ichimoku(
+            #         close_prices.values, high_prices.values, low_prices.values
+            #     )
+            #     print(f"Ichimoku for {coin}: Conversion: {conv}, Base: {base}, Span A: {span_a}, Span B: {span_b}")
+            #     if coin_states[coin] == 0 and curr_price > max(span_a, span_b):
+            #         print("Ichimoku: BUY signal triggered")
+            #         buy_process(curr_price, indicator, coin)
+            #     elif coin_states[coin] == 1 and curr_price < min(span_a, span_b):
+            #         print("Ichimoku: SELL signal triggered")
+            #         sell_process(curr_price, indicator, coin)
+            #     else:
+            #         log_hold_state(curr_price, indicator)
+                    
+                    
+            elif indicator == "Stochastic RSI":
+                #period değişkeni alınacak
+                stoch_rsi = compute_stochastic_rsi(close_prices.values, STOCH_RSI_PERIOD)
+                print(f"Stochastic RSI for {coin}: {stoch_rsi}")
+                if coin_states[coin] == 0 and stoch_rsi < lower:
+                    print("Stochastic RSI: BUY signal triggered")
+                    buy_process(curr_price, indicator, coin)
+                elif coin_states[coin] == 1 and stoch_rsi > upper:
+                    print("Stochastic RSI: SELL signal triggered")
+                    sell_process(curr_price, indicator, coin)
+                else:
+                    log_hold_state(curr_price, indicator)
+                    
+            elif indicator == "Average Directional Index":
+                adx = compute_adx(high_prices.values, low_prices.values, close_prices.values)
+                print(f"ADX for {coin}: {adx}")
+                if coin_states[coin] == 0 and adx > upper:
+                    print("ADX: BUY signal triggered")
+                    buy_process(curr_price, indicator, coin)
+                elif coin_states[coin] == 1 and adx < lower:
+                    print("ADX: SELL signal triggered")
+                    sell_process(curr_price, indicator, coin)
+                else:
+                    log_hold_state(curr_price, indicator)
+                    
+                    
+            elif indicator == "CCI":
+                cci = compute_cci(high_prices.values, low_prices.values, close_prices.values)
+                print(f"CCI for {coin}: {cci}")
+                if coin_states[coin] == 0 and cci < lower:
+                    print("CCI: BUY signal triggered")
+                    buy_process(curr_price, indicator, coin)
+                elif coin_states[coin] == 1 and cci > upper:
+                    print("CCI: SELL signal triggered")
+                    sell_process(curr_price, indicator, coin)
+                else:
+                    log_hold_state(curr_price, indicator)
+        
+    
             logging.info(f"Trading Status: Current Price: {curr_price} | Indicator: {indicator}")
 
             # Belirli bir süre bekle (örneğin, 10 saniye)
