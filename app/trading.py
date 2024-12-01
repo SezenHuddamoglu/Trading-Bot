@@ -155,6 +155,9 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     log_hold_state(curr_price, indicator)
 
             elif indicator == "Bollinger Bands":
+                print("type##########",type(close_prices),"#############")
+                print(close_prices[:i+1].head())
+                print("#################",df.head(),"#################")
                 upper_band, lower_band = compute_bollinger_bands(df)
                 print(f"Bollinger Bands for {coin}: Lower {lower_band}, Upper {upper_band}")
                 if coin_states[coin]== 0 and curr_price <= lower_band:
@@ -354,6 +357,9 @@ def backtest_strategy(coin, indicator, upper, lower, interval):
                 state = 0
         
         elif indicator == "Bollinger Bands":
+            print(type(close_prices))
+            print(close_prices[:i+1].head())
+
             if i < 20:
                 continue
             upper_band, lower_band = compute_bollinger_bands(close_prices[:i+1], 20)
