@@ -302,72 +302,139 @@ def sell_process(curr_price, indicator, coin):
 
 def backtest_strategy(coin, indicator, upper, lower, interval):
     """
-    Perform backtest for a given coin and strategy using RSI, MACD, or Bollinger Bands.
+    Perform backtest for a given coin and strategy using various indicators.
     """
     symbol = f"{coin}USDT"
     df = update_price_history(symbol, interval, days=120)  # 30 günlük veri
-
+    
     if df is None or df.empty:
         raise ValueError("Price history could not be retrieved or is empty.")
-
+    
     if not all(col in df.columns for col in ["Close", "High", "Low"]):
         raise ValueError("Required columns are missing in the data.")
-
+    
     close_prices = df["Close"]
-
+    high_prices = df["High"]
+    low_prices = df["Low"]
+    
     trades = []
     state = 0  # 0: Alım bekleniyor, 1: Satış bekleniyor
     initial_balance = 10000
     coins_held = 0
-
+    
     for i in range(len(close_prices)):
+        curr_price = close_prices.iloc[i]
+        
         if indicator == "RSI":
-            if i < 14:  # RSI için minimum 14 veri noktası gerekiyor
+            if i < 14:
                 continue
             rsi = compute_rsi(close_prices[:i+1], 14)
-            if pd.isna(rsi):  # NaN değerleri kontrol et
-                continue
             if state == 0 and rsi < lower:
-                coins_held = initial_balance / close_prices.iloc[i]
-                trades.append({"action": "BUY", "price": close_prices.iloc[i], "indicator": "RSI", "value": rsi})
+                coins_held = initial_balance / curr_price
+                trades.append({"action": "BUY", "price": curr_price, "indicator": "RSI", "value": rsi})
                 state = 1
             elif state == 1 and rsi > upper:
-                initial_balance = coins_held * close_prices.iloc[i]
-                coins_held = 0
-                trades.append({"action": "SELL", "price": close_prices.iloc[i], "indicator": "RSI", "value": rsi})
-                state = 0
-
-        elif indicator == "MACD":
-            if i < 26:  # MACD için 26 veri noktası gerekiyor
-                continue
-            macd, signal_line = compute_macd(close_prices[:i+1])
-            if pd.isna(macd) or pd.isna(signal_line):  # NaN değerleri kontrol et
-                continue
-            if state == 0 and macd > signal_line:  # MACD kesişim sinyali
-                coins_held = initial_balance / close_prices.iloc[i]
-                trades.append({"action": "BUY", "price": close_prices.iloc[i], "indicator": "MACD", "macd": macd, "signal": signal_line})
-                state = 1
-            elif state == 1 and macd < signal_line:  # Ters kesişim
-                initial_balance = coins_held * close_prices.iloc[i]
-                coins_held = 0
-                trades.append({"action": "SELL", "price": close_prices.iloc[i], "indicator": "MACD", "macd": macd, "signal": signal_line})
-                state = 0
-
-        elif indicator == "Bollinger Bands":
-            if i < 20:  # Bollinger Bands için minimum 20 veri noktası gerekiyor
-                continue
-            upper_band, lower_band, middle_band = compute_bollinger_bands(close_prices[:i+1])
-            if pd.isna(upper_band) or pd.isna(lower_band):  # NaN değerleri kontrol et
-                continue
-            curr_price = close_prices.iloc[i]
-            if state == 0 and curr_price < lower_band:  # Alt banda temas
-                coins_held = initial_balance / curr_price
-                trades.append({"action": "BUY", "price": curr_price, "indicator": "Bollinger Bands", "upper_band": upper_band, "lower_band": lower_band})
-                state = 1
-            elif state == 1 and curr_price > upper_band:  # Üst banda temas
                 initial_balance = coins_held * curr_price
                 coins_held = 0
-                trades.append({"action": "SELL", "price": curr_price, "indicator": "Bollinger Bands", "upper_band": upper_band, "lower_band": lower_band})
+                trades.append({"action": "SELL", "price": curr_price, "indicator": "RSI", "value": rsi})
+                state = 0
+        
+        elif indicator == "MACD":
+            if i < 26:
+                continue
+            macd, signal_line = compute_macd(close_prices[:i+1])
+            if state == 0 and macd > signal_line:
+                coins_held = initial_balance / curr_price
+                trades.append({"action": "BUY", "price": curr_price, "indicator": "MACD", "macd": macd, "signal": signal_line})
+                state = 1
+            elif state == 1 and macd < signal_line:
+                initial_balance = coins_held * curr_price
+                coins_held = 0
+                trades.append({"action": "SELL", "price": curr_price, "indicator": "MACD", "macd": macd, "signal": signal_line})
+                state = 0
+        
+        elif indicator == "Bollinger Bands":
+            if i < 20:
+                continue
+            upper_band, lower_band = compute_bollinger_bands(close_prices[:i+1], 20)
+            if state == 0 and curr_price < lower_band:
+                coins_held = initial_balance / curr_price
+                trades.append({"action": "BUY", "price": curr_price, "indicator": "Bollinger Bands"})
+                state = 1
+            elif state == 1 and curr_price > upper_band:
+                initial_balance = coins_held * curr_price
+                coins_held = 0
+                trades.append({"action": "SELL", "price": curr_price, "indicator": "Bollinger Bands"})
+                state = 0
+        
+        elif indicator == "Moving Average":
+            if i < 20:
+                continue
+            ma = compute_ma(close_prices[:i+1], 20)
+            if state == 0 and curr_price > ma:
+                coins_held = initial_balance / curr_price
+                trades.append({"action": "BUY", "price": curr_price, "indicator": "Moving Average", "value": ma})
+                state = 1
+            elif state == 1 and curr_price < ma:
+                initial_balance = coins_held * curr_price
+                coins_held = 0
+                trades.append({"action": "SELL", "price": curr_price, "indicator": "Moving Average", "value": ma})
+                state = 0
+        
+        elif indicator == "Exponentional Moving Average":
+            if i < 20:
+                continue
+            ema = compute_ema(close_prices[:i+1], 20)
+            if state == 0 and curr_price > ema:
+                coins_held = initial_balance / curr_price
+                trades.append({"action": "BUY", "price": curr_price, "indicator": indicator, "value": ema})
+                state = 1
+            elif state == 1 and curr_price < ema:
+                initial_balance = coins_held * curr_price
+                coins_held = 0
+                trades.append({"action": "SELL", "price": curr_price, "indicator": indicator, "value": ema})
+                state = 0
+        
+        elif indicator == "Stochastic RSI":
+            if i < 14:
+                continue
+            stoch_rsi = compute_stochastic_rsi(close_prices[:i+1], 14)
+            if state == 0 and stoch_rsi < lower:
+                coins_held = initial_balance / curr_price
+                trades.append({"action": "BUY", "price": curr_price, "indicator": "Stochastic RSI", "value": stoch_rsi})
+                state = 1
+            elif state == 1 and stoch_rsi > upper:
+                initial_balance = coins_held * curr_price
+                coins_held = 0
+                trades.append({"action": "SELL", "price": curr_price, "indicator": "Stochastic RSI", "value": stoch_rsi})
+                state = 0
+        
+        elif indicator == "Average Directional Index":
+            if i < 14:
+                continue
+            adx = compute_adx(high_prices[:i+1], low_prices[:i+1], close_prices[:i+1], 14)
+            if state == 0 and adx > upper:
+                coins_held = initial_balance / curr_price
+                trades.append({"action": "BUY", "price": curr_price, "indicator": "ADX", "value": adx})
+                state = 1
+            elif state == 1 and adx < lower:
+                initial_balance = coins_held * curr_price
+                coins_held = 0
+                trades.append({"action": "SELL", "price": curr_price, "indicator": "ADX", "value": adx})
+                state = 0
+        
+        elif indicator == "CCI":
+            if i < 20:
+                continue
+            cci = compute_cci(high_prices[:i+1], low_prices[:i+1], close_prices[:i+1], 20)
+            if state == 0 and cci < lower:
+                coins_held = initial_balance / curr_price
+                trades.append({"action": "BUY", "price": curr_price, "indicator": "CCI", "value": cci})
+                state = 1
+            elif state == 1 and cci > upper:
+                initial_balance = coins_held * curr_price
+                coins_held = 0
+                trades.append({"action": "SELL", "price": curr_price, "indicator": "CCI", "value": cci})
                 state = 0
 
     final_balance = coins_held * close_prices.iloc[-1] if coins_held > 0 else initial_balance
