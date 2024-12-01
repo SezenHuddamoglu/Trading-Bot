@@ -299,3 +299,77 @@ def sell_process(curr_price, indicator, coin):
     balance += profit
     eth_coins = 0
     coin_states[coin] = 0  # Alım bekleniyor
+
+def backtest_strategy(coin, indicator, upper, lower, interval):
+    """
+    Perform backtest for a given coin and strategy using RSI, MACD, or Bollinger Bands.
+    """
+    symbol = f"{coin}USDT"
+    df = update_price_history(symbol, interval, days=120)  # 30 günlük veri
+
+    if df is None or df.empty:
+        raise ValueError("Price history could not be retrieved or is empty.")
+
+    if not all(col in df.columns for col in ["Close", "High", "Low"]):
+        raise ValueError("Required columns are missing in the data.")
+
+    close_prices = df["Close"]
+
+    trades = []
+    state = 0  # 0: Alım bekleniyor, 1: Satış bekleniyor
+    initial_balance = 10000
+    coins_held = 0
+
+    for i in range(len(close_prices)):
+        if indicator == "RSI":
+            if i < 14:  # RSI için minimum 14 veri noktası gerekiyor
+                continue
+            rsi = compute_rsi(close_prices[:i+1], 14)
+            if pd.isna(rsi):  # NaN değerleri kontrol et
+                continue
+            if state == 0 and rsi < lower:
+                coins_held = initial_balance / close_prices.iloc[i]
+                trades.append({"action": "BUY", "price": close_prices.iloc[i], "indicator": "RSI", "value": rsi})
+                state = 1
+            elif state == 1 and rsi > upper:
+                initial_balance = coins_held * close_prices.iloc[i]
+                coins_held = 0
+                trades.append({"action": "SELL", "price": close_prices.iloc[i], "indicator": "RSI", "value": rsi})
+                state = 0
+
+        elif indicator == "MACD":
+            if i < 26:  # MACD için 26 veri noktası gerekiyor
+                continue
+            macd, signal_line = compute_macd(close_prices[:i+1])
+            if pd.isna(macd) or pd.isna(signal_line):  # NaN değerleri kontrol et
+                continue
+            if state == 0 and macd > signal_line:  # MACD kesişim sinyali
+                coins_held = initial_balance / close_prices.iloc[i]
+                trades.append({"action": "BUY", "price": close_prices.iloc[i], "indicator": "MACD", "macd": macd, "signal": signal_line})
+                state = 1
+            elif state == 1 and macd < signal_line:  # Ters kesişim
+                initial_balance = coins_held * close_prices.iloc[i]
+                coins_held = 0
+                trades.append({"action": "SELL", "price": close_prices.iloc[i], "indicator": "MACD", "macd": macd, "signal": signal_line})
+                state = 0
+
+        elif indicator == "Bollinger Bands":
+            if i < 20:  # Bollinger Bands için minimum 20 veri noktası gerekiyor
+                continue
+            upper_band, lower_band, middle_band = compute_bollinger_bands(close_prices[:i+1])
+            if pd.isna(upper_band) or pd.isna(lower_band):  # NaN değerleri kontrol et
+                continue
+            curr_price = close_prices.iloc[i]
+            if state == 0 and curr_price < lower_band:  # Alt banda temas
+                coins_held = initial_balance / curr_price
+                trades.append({"action": "BUY", "price": curr_price, "indicator": "Bollinger Bands", "upper_band": upper_band, "lower_band": lower_band})
+                state = 1
+            elif state == 1 and curr_price > upper_band:  # Üst banda temas
+                initial_balance = coins_held * curr_price
+                coins_held = 0
+                trades.append({"action": "SELL", "price": curr_price, "indicator": "Bollinger Bands", "upper_band": upper_band, "lower_band": lower_band})
+                state = 0
+
+    final_balance = coins_held * close_prices.iloc[-1] if coins_held > 0 else initial_balance
+    profit = final_balance - 10000
+    return {"profit": profit, "trades": trades}

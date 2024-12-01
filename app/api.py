@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 import logging
-from app.trading import start_trading, reset_trades, get_trade_history
+from app.trading import backtest_strategy, start_trading, reset_trades, get_trade_history
 import pandas as pd
 
 
@@ -133,3 +133,65 @@ def update_graph():
     start_trading(coin, indicator, upper, lower, interval)
 
     return {"message": f"{coin} için ticaret algoritması güncellendi ve yeniden başlatıldı"}, 200
+@api.route('/backtest', methods=['POST'])
+def backtest():
+    """
+    Perform a backtest based on provided parameters.
+    ---
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            coin:
+              type: string
+              description: The coin to backtest (e.g., BTC, ETH)
+            indicator:
+              type: string
+              description: The indicator to use for backtesting (e.g., RSI, MACD)
+            upper:
+              type: number
+              description: The upper threshold for the indicator
+            lower:
+              type: number
+              description: The lower threshold for the indicator
+            interval:
+              type: string
+              description: The interval for the backtest (e.g., 1m, 5m, 1h)
+          required:
+            - coin
+            - indicator
+            - upper
+            - lower
+            - interval
+    responses:
+      200:
+        description: Successfully performed backtest
+        schema:
+          type: object
+          properties:
+            result:
+              type: object
+              description: The result of the backtest
+      400:
+        description: Missing or invalid parameters
+    """
+    data = request.get_json()
+    coin = data.get('coin')
+    indicator = data.get('indicator')
+    upper = data.get('upper')
+    lower = data.get('lower')
+    interval = data.get('interval')
+
+    if not (coin and indicator and upper is not None and lower is not None and interval):
+        return {"message": "Eksik parametreler"}, 400
+
+    try:
+        backtest_result = backtest_strategy(coin, indicator, upper, lower, interval)
+        return jsonify({"result": backtest_result}), 200
+    except Exception as e:
+        logger.error(f"Backtest error: {e}")
+        return {"message": "Backtest sırasında bir hata oluştu"}, 500
+
