@@ -124,6 +124,8 @@ def trading_loop(coin, indicator, upper, lower, interval):
             coin_pair = f"{coin}USDT"  # USDT çifti
             df = update_price_history(coin_pair, interval, 1)
             close_prices = df["Close"]
+            high_prices=df["High"]
+            low_prices=df["Low"]
             curr_price = close_prices.iloc[-1]
             #print(f'state', coin_states[coin] == 0 )
             if indicator == "RSI":
@@ -178,8 +180,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     log_hold_state(curr_price, indicator)
 
             elif indicator == " Exponential Moving Average":
-                period=upper
-                ema = compute_ema(close_prices.values, period)
+                ema = compute_ema(close_prices.values,STOCH_RSI_PERIOD)
                 print(f"EMA for {coin}: {ema}")
                 if coin_states[coin] == 0 and curr_price > ema:
                     print("EMA: BUY signal triggered")
@@ -206,6 +207,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     
                     
             elif indicator == "Stochastic RSI":
+                period=upper
                 #period değişkeni alınacak
                 STOCH_RSI_PERIOD=14
                 stoch_rsi = compute_stochastic_rsi(close_prices.values, STOCH_RSI_PERIOD)
