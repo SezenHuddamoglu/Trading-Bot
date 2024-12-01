@@ -207,6 +207,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     
             elif indicator == "Stochastic RSI":
                 #period değişkeni alınacak
+                STOCH_RSI_PERIOD=14
                 stoch_rsi = compute_stochastic_rsi(close_prices.values, STOCH_RSI_PERIOD)
                 print(f"Stochastic RSI for {coin}: {stoch_rsi}")
                 if coin_states[coin] == 0 and stoch_rsi < lower:
