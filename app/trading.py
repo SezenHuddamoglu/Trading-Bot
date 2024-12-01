@@ -29,6 +29,7 @@ lock = threading.Lock()
 coin_states = {}  # Her coin için state saklanacak
 stop_signals = {}
 
+
 def perform_backtest(data, initial_balance, indicator_type, lower_limit, upper_limit, interval):
     """
     Çoklu coin ve indikatörlere göre backtest fonksiyonu.
@@ -72,8 +73,14 @@ def perform_backtest(data, initial_balance, indicator_type, lower_limit, upper_l
     final_balance = balance + coins * data['Close'].iloc[-1]
     return {"trades": trades, "final_balance": final_balance}
 
-def load_historical_data(symbol, interval, start_date):
-    klines = client.get_historical_klines(symbol, interval, start_date)
+def load_historical_data(symbol,interval):
+    symbol = symbol.upper() + "USDT"
+    klines = client.get_historical_klines(
+    symbol=symbol,
+    interval=interval,
+    start_str=str(datetime.now(timezone.utc) - timedelta(days=120)),  # 120 gün = 4 ay
+    end_str=str(datetime.now(timezone.utc))
+    )
     df = pd.DataFrame(klines, columns=[
         "Open Time", "Open", "High", "Low", "Close", "Volume",
         "Close Time", "Quote Asset Volume", "Number of Trades",

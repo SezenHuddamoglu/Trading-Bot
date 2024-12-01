@@ -14,7 +14,7 @@ swagger = Swagger(app)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
 # API Blueprint'ini uygulamaya dahil et
-app.register_blueprint(api)
+app.register_blueprint(api,url_prefix="/api")
 
 # Anasayfa rotası
 @app.route("/")
