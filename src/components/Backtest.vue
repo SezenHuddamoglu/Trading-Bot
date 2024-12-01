@@ -136,15 +136,15 @@ export default {
     flex-direction: row;
     justify-content: space-evenly;
     align-items: center;
+    height: 60px;
 
-    height: 40px;
     .coin-name {
       font-size: 16px;
       font-weight: 600;
       color: yellow;
     }
     button {
-      background-color: #06121e;
+      background: radial-gradient(circle, #434f63, #2e3842);
       color: aliceblue;
       width: 100px;
       height: 40px;
