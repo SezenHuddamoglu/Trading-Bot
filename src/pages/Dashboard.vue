@@ -8,8 +8,8 @@
       lower=""
       :intervals="intervals"
       :initialBalance="''"
-      :trades="backtests"
     />
+
     <div class="start-all">
       <p class="text">Tüm coinler ile trade'i başlatmak için tıklayın</p>
       <button class="update-button" @click="startAll">Start</button>
@@ -91,6 +91,8 @@ export default {
     async fetchAllData() {
       try {
         this.coins = await fetchCoins()
+        // const response = await fetchBacktest()
+        // this.backtests = response.data.trades
 
         for (const coin of this.coinList) {
           if (!this.tradesByCoin[coin.name]) {
@@ -118,17 +120,6 @@ export default {
         })
       }
     },
-    // updateGraph({
-    //   coin,
-    //   indicator,
-    //   values,
-    // }: {
-    //   coin: string
-    //   indicator: string
-    //   values: { upper: number; lower: number }
-    // }) {
-    //   console.log('Graph updated for:', { coin, indicator, values })
-    // },
   },
   mounted() {
     this.fetchAllData()

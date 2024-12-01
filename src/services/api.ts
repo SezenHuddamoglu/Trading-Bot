@@ -51,6 +51,22 @@ export async function fetchTrades(coin: string) {
     throw error
   }
 }
+export async function fetchBacktest(params: {
+  coin: string
+  indicator: string
+  upper: number
+  lower: number
+  balance: number
+  interval: string
+}) {
+  try {
+    const response = await api.post('/api/backtest', params)
+    return response.data.result
+  } catch (error) {
+    console.error('fetchBacktest başarısız:', error)
+    throw error
+  }
+}
 
 //checkbackend
 export default api

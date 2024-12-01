@@ -46,12 +46,11 @@
       />
 
       <!-- Update Graph Button -->
-      <button class="update-button">Start</button>
+      <button class="update-button" @click="startBacktest">Start</button>
     </div>
     <div class="results">
-      <!-- Price Chart and Trade History -->
-      <!-- <TradeChart :trades="trades" />
-      <TradeHistory :trades="trades" /> -->
+      <div>Total Profit: {{ totalProfit }}</div>
+      <TradeChart :trades="localTrades" />
     </div>
   </div>
 </template>
@@ -59,7 +58,8 @@
 <script lang="ts">
 import Dropdown from './Dropdown.vue'
 import UIInput from './Input.vue'
-// import TradeChart from './TradeChart.vue'
+import { fetchBacktest } from '../services/api'
+import TradeChart from './TradeChart.vue'
 // import TradeHistory from './TradeHistory.vue'
 
 export default {
@@ -67,7 +67,7 @@ export default {
   components: {
     Dropdown,
     UIInput,
-    // TradeChart,
+    TradeChart,
     // TradeHistory,
   },
   props: {
@@ -76,7 +76,7 @@ export default {
     upper: { type: String, required: true },
     lower: { type: String, required: true },
     intervals: { type: Array as () => string[], required: true },
-    trades: { type: Array as () => object[], required: true },
+    //trades: { type: Array as () => object[], required: true },
     initialBalance: { type: String, required: true },
   },
   data() {
@@ -88,25 +88,29 @@ export default {
       lowerData: 30,
       localTrades: [], // Coin özelinde trade geçmişi
       balance: 10000,
+      totalProfit: 0,
     }
   },
+
   methods: {
-    // async updateGraph() {
-    //   const payload = {
-    //     coin: this.coin,
-    //     indicator: this.selectedIndicator,
-    //     upper: this.upper,
-    //     lower: this.lower,
-    //     interval: this.selectedInterval,
-    //   }
-    //   console.log('Graph updated for:', payload)
-    //   try {
-    //     const response = await axios.post('/api/updateGraph', payload)
-    //     this.localTrades = response.data.trades // Backend'den gelen trade verilerini güncelle
-    //   } catch (error) {
-    //     console.error('Error updating graph:', error)
-    //   }
-    // },
+    async startBacktest() {
+      try {
+        const payload = {
+          coin: this.selectedCoin,
+          indicator: this.selectedIndicator,
+          upper: this.upperData,
+          lower: this.lowerData,
+          balance: this.balance,
+          interval: this.selectedInterval,
+        }
+        console.log(payload)
+        const result = await fetchBacktest(payload)
+        this.totalProfit = result.profit
+        this.localTrades = result.trades
+      } catch (error) {
+        console.error('Backtest çalıştırılırken hata oluştu:', error)
+      }
+    },
   },
 }
 </script>
@@ -129,7 +133,7 @@ export default {
     gap: 16px;
     margin-bottom: 1rem;
     padding: 1rem;
-    background-color: #35374B;
+    background-color: #35374b;
     color: aliceblue;
     border-radius: 8px;
     text-align: center;
