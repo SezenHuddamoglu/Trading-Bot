@@ -22,6 +22,31 @@ export default {
   name: 'App',
   components: { DefaultLayout },
 }
+
+// async function testApi() {
+//   try {
+//     const params = {
+//       coin: 'ETH', // Örnek değerler
+//       indicator: 'MACD',
+//       upper: 60,
+//       lower: 40,
+//       balance: 10000,
+//       interval: '1h',
+//     }
+
+//     const response = await api.post('/api/backtest', params)
+//     console.log('API testi başarılı:', response.data)
+//   } catch (error) {
+//     if (error.response) {
+//       // Backend'den dönen hata yanıtını gösterir
+//       console.error('API Hata Yanıtı:', error.response.data)
+//     } else {
+//       console.error('API testi başarısız:', error)
+//     }
+//   }
+// }
+
+// testApi()
 </script>
 
 <style>

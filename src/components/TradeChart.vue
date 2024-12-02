@@ -34,7 +34,7 @@ export default {
   },
   mounted() {
     this.$nextTick(() => {
-    this.initializeChart()
+      this.initializeChart()
     })
   },
   methods: {
@@ -42,7 +42,7 @@ export default {
       const container = this.$refs.chartContainer as HTMLDivElement
       this.chart = createChart(container, {
         width: container.clientWidth || 800,
-        height: container.clientHeight ||500,
+        height: container.clientHeight || 500,
         layout: {
           background: '#fff', // Arka plan rengi için doğru kullanım
           textColor: '#d1d4dc',
@@ -91,15 +91,14 @@ export default {
     },
     updateChart() {
       if (!this.lineSeries) return
-      console.log('Chart initialized:', this.chart)
-      console.log('Line Series:', this.lineSeries)
+      //console.log('Chart initialized:', this.chart)
+      //console.log('Line Series:', this.lineSeries)
 
-
-      console.log('Time',this.trades.map(trade => ({
-        time: Math.floor(new Date(trade.timestamp).getTime() / 1000),
-        value: trade.price
-      })))
-      console.log('Trades:', this.trades)
+      // console.log('Time',this.trades.map(trade => ({
+      //   time: Math.floor(new Date(trade.timestamp).getTime() / 1000),
+      //   value: trade.price
+      // })))
+      // console.log('Trades:', this.trades)
 
       // `trade`'in türünü Trade olarak belirledik ve doğru türde zaman verisi kullandık
       const data: LineData<Time>[] = this.trades.map((trade) => ({

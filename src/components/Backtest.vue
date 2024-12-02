@@ -50,7 +50,8 @@
     </div>
     <div class="results">
       <div>Total Profit: {{ totalProfit }}</div>
-      <TradeChart :trades="localTrades" />
+
+      <TradeHistory :trades="trades" />
     </div>
   </div>
 </template>
@@ -58,17 +59,18 @@
 <script lang="ts">
 import Dropdown from './Dropdown.vue'
 import UIInput from './Input.vue'
-import { fetchBacktest } from '../services/api'
-import TradeChart from './TradeChart.vue'
-// import TradeHistory from './TradeHistory.vue'
+
+//import TradeChart from './TradeChart.vue'
+import TradeHistory from './TradeHistory.vue'
+import { Trade } from '../types/Trade'
 
 export default {
   name: 'ControlBar',
   components: {
     Dropdown,
     UIInput,
-    TradeChart,
-    // TradeHistory,
+    //TradeChart,
+    TradeHistory,
   },
   props: {
     coinList: { type: Array as () => string[], required: true },
@@ -78,6 +80,8 @@ export default {
     intervals: { type: Array as () => string[], required: true },
     //trades: { type: Array as () => object[], required: true },
     initialBalance: { type: String, required: true },
+    totalProfit: Number,
+    trades: { type: Array as () => Trade[], required: true },
   },
   data() {
     return {
@@ -88,29 +92,26 @@ export default {
       lowerData: 30,
       localTrades: [], // Coin özelinde trade geçmişi
       balance: 10000,
-      totalProfit: 0,
     }
   },
 
   methods: {
-    async startBacktest() {
-      try {
-        const payload = {
-          coin: this.selectedCoin,
-          indicator: this.selectedIndicator,
-          upper: this.upperData,
-          lower: this.lowerData,
-          balance: this.balance,
-          interval: this.selectedInterval,
-        }
-        console.log(payload)
-        const result = await fetchBacktest(payload)
-        this.totalProfit = result.profit
-        this.localTrades = result.trades
-      } catch (error) {
-        console.error('Backtest çalıştırılırken hata oluştu:', error)
+    startBacktest() {
+      const params = {
+        coin: this.selectedCoin,
+        indicator: this.selectedIndicator,
+        balance: this.balance,
+        interval: this.selectedInterval,
+        lower: this.lowerData,
+        upper: this.upperData, // upperData doğru alan olmalı
+        // lowerData doğru alan olmalı
+        // initialBalance beklenen ad
       }
+      this.$emit('fetch-backtest', params)
     },
+  },
+  mounted() {
+    //this.startBacktest()
   },
 }
 </script>
