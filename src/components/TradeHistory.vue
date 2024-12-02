@@ -10,8 +10,7 @@
           <th>Amount</th>
           <th>Indicators</th>
           <th>Total Deposit</th>
-          <th>Profit</th>
-
+          <!-- <th>Profit</th> -->
         </tr>
       </thead>
       <tbody>
@@ -38,11 +37,11 @@
                 : 'N/A'
             }}
           </td>
-          <td>
+          <!-- <td>
             {{
               trade.profit !== undefined && trade.profit !== null ? trade.profit.toFixed(4) : 'N/A'
             }}
-          </td>
+          </td> -->
         </tr>
       </tbody>
     </table>

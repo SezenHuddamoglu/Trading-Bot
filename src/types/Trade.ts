@@ -6,5 +6,4 @@ export interface Trade {
   timestamp: number
   indicator: string
   deposit: number
-  profit: number
 }
