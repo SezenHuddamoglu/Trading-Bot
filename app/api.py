@@ -161,7 +161,7 @@ def backtest():
             interval:
               type: string
               description: The interval for the backtest (e.g., 1m, 5m, 1h)
-            initialBalance:
+            balance:
               type: number
               description: The initial balance
           required:
@@ -170,7 +170,7 @@ def backtest():
             - upper
             - lower
             - interval
-            - initialBalance
+            - balance
     responses:
       200:
         description: Successfully performed backtest
@@ -189,15 +189,15 @@ def backtest():
     upper = data.get('upper')
     lower = data.get('lower')
     interval = data.get('interval')
-    initialBalance = data.get('balance')  # Corrected key
+    balance = data.get('balance')  # Correct key now
 
     # Check if any parameter is missing
-    if not (coin and indicator and upper is not None and lower is not None and interval and initialBalance is not None):
+    if not (coin and indicator and upper is not None and lower is not None and interval and balance is not None):
         return {"message": "Eksik veya geçersiz parametreler"}, 400
 
     try:
         # Perform backtest
-        backtest_result = backtest_strategy(coin, indicator, upper, lower, interval, initialBalance)
+        backtest_result = backtest_strategy(coin, indicator, upper, lower, interval, balance)
         return jsonify({"result": backtest_result}), 200
     except Exception as e:
         logger.error(f"Backtest error: {e}")

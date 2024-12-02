@@ -303,11 +303,11 @@ def sell_process(curr_price, indicator, coin):
     eth_coins = 0
     coin_states[coin] = 0  # Alım bekleniyor
 
-def backtest_strategy(coin, indicator, upper, lower, interval, initialBalance):
+def backtest_strategy(coin, indicator, upper, lower, interval, balance):
     """
     Perform backtest for a given coin and strategy using various indicators.
     """
-    print(f"Backtest started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}, Initial Balance {initialBalance}")
+    print(f"Backtest started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}, Initial Balance {balance}")
 
     symbol = f"{coin}USDT"
     df = update_price_history(symbol, interval, days=120)  # 30 günlük veri
@@ -324,24 +324,25 @@ def backtest_strategy(coin, indicator, upper, lower, interval, initialBalance):
     
     trades = []
     state = 0  # 0: Alım bekleniyor, 1: Satış bekleniyor
-    initial_balance = initialBalance
+    initial_balance = balance
     coins_held = 0
     
     for i in range(len(close_prices)):
         curr_price = close_prices.iloc[i]
+        curr_time = df.index[i]  
         
         if indicator == "RSI":
             if i < 14:
                 continue
             rsi = compute_rsi(close_prices[:i+1], 14)
             if state == 0 and rsi < lower:
-                trade = buyBacktest(curr_price, initial_balance, indicator)
+                trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and rsi > upper:
-                trade = sellBacktest(curr_price, coins_held, indicator)
+                trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
                 coins_held = 0
@@ -353,7 +354,7 @@ def backtest_strategy(coin, indicator, upper, lower, interval, initialBalance):
                 continue
             macd, signal_line = compute_macd(close_prices[:i+1])
             if state == 0 and macd > signal_line:
-                trade = buyBacktest(curr_price, initial_balance, indicator)
+                trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
@@ -373,13 +374,13 @@ def backtest_strategy(coin, indicator, upper, lower, interval, initialBalance):
                 continue
             upper_band, lower_band = compute_bollinger_bands(close_prices[:i+1], 20)
             if state == 0 and curr_price < lower_band:
-                trade = buyBacktest(curr_price, initial_balance, indicator)
+                trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and curr_price > upper_band:
-                trade = sellBacktest(curr_price, coins_held, indicator)
+                trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
                 coins_held = 0
@@ -390,13 +391,13 @@ def backtest_strategy(coin, indicator, upper, lower, interval, initialBalance):
                 continue
             ma = compute_ma(close_prices[:i+1], 20)
             if state == 0 and curr_price > ma:
-                trade = buyBacktest(curr_price, initial_balance, indicator)
+                trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and curr_price < ma:
-                trade = sellBacktest(curr_price, coins_held, indicator)
+                trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
                 coins_held = 0
@@ -407,13 +408,13 @@ def backtest_strategy(coin, indicator, upper, lower, interval, initialBalance):
                 continue
             ema = compute_ema(close_prices[:i+1], 20)
             if state == 0 and curr_price > ema:
-                trade = buyBacktest(curr_price, initial_balance, indicator)
+                trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and curr_price < ema:
-                trade = sellBacktest(curr_price, coins_held, indicator)
+                trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
                 coins_held = 0
@@ -424,13 +425,13 @@ def backtest_strategy(coin, indicator, upper, lower, interval, initialBalance):
                 continue
             stoch_rsi = compute_stochastic_rsi(close_prices[:i+1], 14)
             if state == 0 and stoch_rsi < lower:
-                trade = buyBacktest(curr_price, initial_balance, indicator)
+                trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and stoch_rsi > upper:
-                trade = sellBacktest(curr_price, coins_held, indicator)
+                trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
                 coins_held = 0
@@ -441,13 +442,13 @@ def backtest_strategy(coin, indicator, upper, lower, interval, initialBalance):
                 continue
             adx = compute_adx(high_prices[:i+1], low_prices[:i+1], close_prices[:i+1], 14)
             if state == 0 and adx > upper:
-                trade = buyBacktest(curr_price, initial_balance, indicator)
+                trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and adx < lower:
-                trade = sellBacktest(curr_price, coins_held, indicator)
+                trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
                 coins_held = 0
@@ -458,13 +459,13 @@ def backtest_strategy(coin, indicator, upper, lower, interval, initialBalance):
                 continue
             cci = compute_cci(high_prices[:i+1], low_prices[:i+1], close_prices[:i+1], 20)
             if state == 0 and cci < lower:
-                trade = buyBacktest(curr_price, initial_balance, indicator)
+                trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and cci > upper:
-                trade = sellBacktest(curr_price, coins_held, indicator)
+                trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
                 coins_held = 0
@@ -474,26 +475,27 @@ def backtest_strategy(coin, indicator, upper, lower, interval, initialBalance):
     profit = final_balance - 10000
     return {"profit": profit, "trades": trades}
 
-def buyBacktest(price, balance, indicator):
+def buyBacktest(price, balance, indicator, timestamp):
     """Alım işlemi gerçekleştir ve Trade nesnesi oluştur."""
     amount = balance / price
     return Trade(
         action="BUY",
         price=price,
         amount=amount,
-        timestamp=datetime.now(),
+        timestamp=timestamp,  # Veri setinden gelen zaman damgası
         indicator=indicator,
         deposit=balance,
     )
 
-def sellBacktest(price, amount, indicator):
+def sellBacktest(price, amount, indicator, timestamp):
     """Satış işlemi gerçekleştir ve Trade nesnesi oluştur."""
     deposit = amount * price
     return Trade(
         action="SELL",
         price=price,
         amount=amount,
-        timestamp=datetime.now(),
+        timestamp=timestamp,  # Veri setinden gelen zaman damgası
         indicator=indicator,
         deposit=deposit,
     )
+
