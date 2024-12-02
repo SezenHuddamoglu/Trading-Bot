@@ -243,7 +243,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
                 print(f"CCI for {coin}: {cci}")
                 if coin_states[coin] == 0 and cci < lower:
                     print("CCI: BUY signal triggered")
-                    buy_process(curr_price, indicator, coin)
+                    buy_process(curr_price, indicator, coin) 
                 elif coin_states[coin] == 1 and cci > upper:
                     print("CCI: SELL signal triggered")
                     sell_process(curr_price, indicator, coin)
