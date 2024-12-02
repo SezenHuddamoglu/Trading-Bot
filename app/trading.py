@@ -22,8 +22,8 @@ client = Client(api_key=api_key, api_secret=secret_key)
 INITIAL_BALANCE = 10000  # Başlangıç bakiyesi
 LOSS_THRESHOLD = 0.90  # Zarar durdurma eşiği
 TRADE_INTERVALS = ["1m", "5m", "15m", "30m", "1h"]
-balance = INITIAL_BALANCE
-eth_coins = 0
+balance = INITIAL_BALANCE   #for live trading
+eth_coins = 0 
 trade_history = {}
 price_history = {}
 lock = threading.Lock()
@@ -250,8 +250,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
                 else:
                     log_hold_state(curr_price, indicator)
         
-    
-            logging.info(f"Trading Status: Current Price: {curr_price} | Indicator: {indicator}")
+            logging.info(f"Trading Status: Current Price: {curr_price} | Indicator: {indicator} | Deposit: {balance}")
 
             # Belirli bir süre bekle (örneğin, 10 saniye)
             time.sleep(10)
