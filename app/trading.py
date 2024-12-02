@@ -34,8 +34,8 @@ stop_signals = {}
 
 
 # İşlem kaydı
-def log_trade(action, price, amount, indicator, coin):
-    global balance
+def log_trade(action, price, amount, indicator, coin,balance):
+    #global balance
     with lock:
         trade = {
             "action": action,
@@ -292,15 +292,16 @@ def buy_process(curr_price, indicator, coin):
     num_coins_to_buy = balance / curr_price
     eth_coins += num_coins_to_buy
     balance = 0  # Tüm bakiyeyi kullandık
-    log_trade("Buy", curr_price, num_coins_to_buy, indicator, coin)
+    log_trade("Buy", curr_price, num_coins_to_buy, indicator, coin, balance)
     coin_states[coin] = 1  # Satış bekleniyor
 
 def sell_process(curr_price, indicator, coin):
     global balance, eth_coins
     profit = eth_coins * curr_price
-    log_trade("Sell", curr_price, eth_coins, indicator, coin)
+    
     balance += profit
     eth_coins = 0
+    log_trade("Sell", curr_price, eth_coins, indicator, coin,balance)
     coin_states[coin] = 0  # Alım bekleniyor
 
 def backtest_strategy(coin, indicator, upper, lower, interval, balance):
