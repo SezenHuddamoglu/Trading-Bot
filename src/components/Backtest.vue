@@ -26,8 +26,6 @@
         <UIInput v-model="balance" label="Initial Balance: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'MACD'">
-        <UIInput v-model="upperData" label="High Price:" />
-        <UIInput v-model="lowerData" label="Close Price: " />
         <UIInput v-model="balance" label="InitialBalance: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'Bollinger Bands'">
@@ -160,7 +158,7 @@ export default {
     gap: 16px;
     margin-bottom: 1rem;
     padding: 1rem;
-    background-color: #295f98;
+    background-color: #1b2126;
     color: aliceblue;
     border-radius: 8px;
     text-align: center;

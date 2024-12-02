@@ -18,8 +18,7 @@
         <UIInput v-model="upper" label="Upper Bound:" />
         <UIInput v-model="lower" label="Lower Bound: " />
       </div>
-      <div class="input-field" v-if="selectedIndicator === 'MACD'">
-      </div>
+      <div class="input-field" v-if="selectedIndicator === 'MACD'"></div>
       <div class="input-field" v-if="selectedIndicator === 'Bollinger Bands'">
         <UIInput v-model="upper" label="Upper Band:" />
         <UIInput v-model="lower" label="Lower Band: " />
@@ -142,7 +141,7 @@ export default {
     gap: 16px;
     margin-bottom: 1rem;
     padding: 1rem;
-    background-color: #295F98;
+    background-color: #1b2126;
     color: aliceblue;
     border-radius: 8px;
     text-align: center;

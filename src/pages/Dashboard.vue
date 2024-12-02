@@ -38,6 +38,14 @@ import ControlBar from '../components/ControlBar.vue'
 import Backtest from '../components/Backtest.vue'
 import { reactive, ref } from 'vue'
 import { Trade } from '../types/Trade'
+interface Backtest {
+  coin: string
+  indicator: string
+  balance: number
+  interval: string
+  lower: number
+  upper: number
+}
 
 export default {
   name: 'DashboardPage',
@@ -83,7 +91,7 @@ export default {
     }
   },
   methods: {
-    async handleFetchBacktest(params) {
+    async handleFetchBacktest(params: Backtest) {
       console.log('Parameters ', params)
       try {
         const result = await fetchBacktest(params)
