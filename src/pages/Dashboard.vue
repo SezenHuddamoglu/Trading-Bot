@@ -4,16 +4,20 @@
     <Backtest
       :coinList="backtestCoins"
       :indicators="indicators"
-      upper=""
-      lower=""
+      :upper="''"
+      :lower="''"
       :intervals="intervals"
       :initialBalance="''"
+      :totalProfit="totalProfit"
+      :trades="trades"
+      @fetch-backtest="handleFetchBacktest"
     />
 
     <div class="start-all">
       <p class="text">Tüm coinler ile trade'i başlatmak için tıklayın</p>
       <button class="update-button" @click="startAll">Start</button>
     </div>
+
     <div v-for="coin in coinList" :key="coin.name" class="coin-section">
       <ControlBar
         ref="controlBars"
@@ -28,11 +32,11 @@
 </template>
 
 <script lang="ts">
-import { fetchCoins, fetchTrades } from '../services/api'
+import { fetchBacktest, fetchCoins, fetchTrades } from '../services/api'
 import CoinList from '../components/CoinList.vue'
 import ControlBar from '../components/ControlBar.vue'
-import { reactive, ref } from 'vue'
 import Backtest from '../components/Backtest.vue'
+import { reactive, ref } from 'vue'
 import { Trade } from '../types/Trade'
 
 export default {
@@ -51,9 +55,8 @@ export default {
       backtestCoins: ['ETH', 'BTC', 'AVA', 'SOL', 'RENDER', 'FET'],
       coins: [],
       tradesByCoin: reactive<{ [key: string]: Trade[] }>({}),
-
-      backtests: [],
-      trades: [], // İşlemler
+      totalProfit: 0,
+      trades: [],
       indicators: [
         'RSI',
         'MACD',
@@ -64,9 +67,7 @@ export default {
         'Average Directional Index',
         'Volume Weighted Average Price',
         'Commodity Channel Index',
-      ], // İndikatör türleri
-
-      // ref kullanarak
+      ],
       indicatorValues: ref<{
         [key: string]: { upper: number; lower: number }
       }>({
@@ -81,29 +82,28 @@ export default {
       intervals: ['1m', '5m', '15m', '30m', '45m', '1h'],
     }
   },
-  computed: {
-    tradesByCoinComputed() {
-      // Gereksizse tradesByCoin için kullanılabilir.
-      return this.tradesByCoin
-    },
-  },
   methods: {
+    async handleFetchBacktest(params) {
+      console.log(params)
+      try {
+        const result = await fetchBacktest(params)
+        this.totalProfit = result.profit
+        this.trades = result.trades
+      } catch (error) {
+        console.error('Backtest sorgusunda hata:', error)
+      }
+    },
     async fetchAllData() {
       try {
-        this.coins = await fetchCoins()
-        // const response = await fetchBacktest()
-        // this.backtests = response.data.trades
-
-        for (const coin of this.coinList) {
-          if (!this.tradesByCoin[coin.name]) {
-            this.tradesByCoin[coin.name] = [] // Başlangıç değeri belirle
-          }
+        const coins = await fetchCoins()
+        this.coins = coins
+        const tradesPromises = this.coinList.map(async (coin) => {
           const trades = await fetchTrades(coin.name)
           this.tradesByCoin[coin.name] = trades
-        }
-        // Her coin için varsayılan değerleri tanımla
+        })
+        await Promise.all(tradesPromises)
       } catch (error) {
-        console.error('fetchAllData başarısız:', error)
+        console.error('Veri çekme başarısız:', error)
         if (this.intervalId !== null) {
           clearInterval(this.intervalId)
           this.intervalId = null
@@ -113,17 +113,13 @@ export default {
     startAll() {
       const controlBars = this.$refs.controlBars
       if (Array.isArray(controlBars)) {
-        controlBars.forEach((controlBar) => {
-          if (controlBar && typeof controlBar.start === 'function') {
-            controlBar.start()
-          }
-        })
+        controlBars.forEach((controlBar) => controlBar?.start?.())
       }
     },
   },
   mounted() {
     this.fetchAllData()
-    this.intervalId = setInterval(this.fetchAllData, 5000) as unknown as number
+    this.intervalId = setInterval(this.fetchAllData, 5000)
   },
   beforeUnmount() {
     if (this.intervalId !== null) {
