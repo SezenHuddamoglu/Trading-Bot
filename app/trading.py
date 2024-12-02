@@ -458,7 +458,7 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 coins_held = 0
                 state = 0
         
-        elif indicator == "CCI":
+        elif indicator == "Commodity Channel Index":
             if i < 20:
                 continue
             cci = compute_cci(high_prices[:i+1], low_prices[:i+1], close_prices[:i+1], 20)
