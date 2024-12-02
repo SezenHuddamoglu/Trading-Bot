@@ -41,8 +41,8 @@ export default {
     initializeChart() {
       const container = this.$refs.chartContainer as HTMLDivElement
       this.chart = createChart(container, {
-        width: container.clientWidth || 800,
-        height: container.clientHeight || 500,
+        width: container.clientWidth,
+        height: container.clientHeight,
         layout: {
           background: '#fff', // Arka plan rengi için doğru kullanım
           textColor: '#d1d4dc',
