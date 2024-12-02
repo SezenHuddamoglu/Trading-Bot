@@ -73,7 +73,10 @@
       <button class="update-button" @click="startBacktest">Start</button>
     </div>
     <div class="results">
-      <div>Total Profit: {{ totalProfit }}</div>
+      <div class="profits">
+        <span>Total Profit: {{ totalProfit }} </span>
+        <span>Final Balance: {{ finalBalance }}</span>
+      </div>
 
       <TradeChart :trades="trades" class="chart" />
     </div>
@@ -105,6 +108,7 @@ export default {
     //trades: { type: Array as () => object[], required: true },
     initialBalance: { type: String, required: true },
     totalProfit: Number,
+    finalBalance: Number,
     trades: { type: Array as () => Trade[], required: true },
   },
   data() {
@@ -182,6 +186,7 @@ export default {
       font-size: 14px;
       font-weight: 600;
       padding: 4px;
+      cursor: pointer;
     }
     .input-field {
       display: flex;
@@ -237,11 +242,29 @@ export default {
   .results {
     display: flex;
     flex-direction: column;
-    /* justify-content: space-between;
-    align-items: flex-start; */
+
     gap: 20px;
     margin-top: 20px;
+    .profits {
+      display: flex;
+      flex-direction: row;
+      gap: 32px;
+      justify-content: flex-start;
+      padding: 10px 16px;
+      border-radius: 8px;
 
+      color: aliceblue;
+
+      span {
+        font-size: 16px;
+        font-weight: bold;
+        color: aliceblue;
+        background-color: #1c2125;
+        padding: 12px 16px;
+        border-radius: 8px;
+        border: 1px solid #1c2125;
+      }
+    }
     .chart {
       width: 1200px;
     }
