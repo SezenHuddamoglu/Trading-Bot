@@ -219,7 +219,7 @@ export default {
     margin-top: 20px;
 
     .chart {
-      width: fit-content;
+      width: 1200px;
     }
   }
 }
