@@ -84,7 +84,7 @@ export default {
   },
   methods: {
     async handleFetchBacktest(params) {
-      console.log(params)
+      console.log('Parameters ', params)
       try {
         const result = await fetchBacktest(params)
         this.totalProfit = result.profit

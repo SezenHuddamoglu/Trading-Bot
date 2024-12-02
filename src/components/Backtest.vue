@@ -51,7 +51,7 @@
     <div class="results">
       <div>Total Profit: {{ totalProfit }}</div>
 
-      <TradeHistory :trades="trades" />
+      <TradeChart :trades="trades" class="chart" />
     </div>
   </div>
 </template>
@@ -60,8 +60,8 @@
 import Dropdown from './Dropdown.vue'
 import UIInput from './Input.vue'
 
-//import TradeChart from './TradeChart.vue'
-import TradeHistory from './TradeHistory.vue'
+import TradeChart from './TradeChart.vue'
+//import TradeHistory from './TradeHistory.vue'
 import { Trade } from '../types/Trade'
 
 export default {
@@ -69,8 +69,8 @@ export default {
   components: {
     Dropdown,
     UIInput,
-    //TradeChart,
-    TradeHistory,
+    TradeChart,
+    // TradeHistory,
   },
   props: {
     coinList: { type: Array as () => string[], required: true },
@@ -134,7 +134,7 @@ export default {
     gap: 16px;
     margin-bottom: 1rem;
     padding: 1rem;
-    background-color: #295F98;
+    background-color: #295f98;
     color: aliceblue;
     border-radius: 8px;
     text-align: center;
@@ -212,32 +212,14 @@ export default {
   }
   .results {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
+    flex-direction: column;
+    /* justify-content: space-between;
+    align-items: flex-start; */
     gap: 20px;
     margin-top: 20px;
-  }
-  .results > * {
-    flex: 1;
-    max-width: 45%;
-  }
-  .results > *:first-child {
-    flex: 2;
-    min-width: 60%;
-  }
 
-  .results > *:last-child {
-    flex: 1; /* TradeHistory'ye daha az genişlik verir */
-  }
-
-  @media (max-width: 768px) {
-    .results {
-      flex-direction: column;
-    }
-
-    .results > * {
-      max-width: 100%;
+    .chart {
+      width: fit-content;
     }
   }
 }
