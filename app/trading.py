@@ -477,7 +477,7 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
 
     final_balance = coins_held * close_prices.iloc[-1] if coins_held > 0 else initial_balance
     profit = final_balance - 10000
-    return {"profit": profit, "trades": trades}
+    return {"finalBalance": final_balance, "profit": profit, "trades": trades}
 
 def buyBacktest(price, balance, indicator, timestamp):
     """Alım işlemi gerçekleştir ve Trade nesnesi oluştur."""
