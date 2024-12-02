@@ -54,27 +54,39 @@ def compute_stochastic_rsi(prices, period=14):
 
 def compute_adx(high, low, close, period=14):
     import numpy as np
+    
+    # Girdi veri uzunluklarını eşitle
+    min_length = min(len(high), len(low), len(close))
+    high = np.array(high[:min_length])
+    low = np.array(low[:min_length])
+    close = np.array(close[:min_length])
 
-    # Calculate True Range (TR)
-    tr = np.maximum.reduce([high[1:] - low[1:], 
-                            abs(high[1:] - close[:-1]), 
-                            abs(low[1:] - close[:-1])])
-
-    # Calculate +DI and -DI
+    # True Range hesaplama
+    tr1 = high[1:] - low[1:]
+    tr2 = np.abs(high[1:] - close[:-1])
+    tr3 = np.abs(low[1:] - close[:-1])
+    
+    tr = np.maximum.reduce([tr1, tr2, tr3])
+    
+    # +DI ve -DI hesapla
     up_move = high[1:] - high[:-1]
     down_move = low[:-1] - low[1:]
-    plus_di = 100 * np.where((up_move > down_move) & (up_move > 0), up_move, 0) / tr
-    minus_di = 100 * np.where((down_move > up_move) & (down_move > 0), down_move, 0) / tr
+    
+    plus_di = np.where((up_move > down_move) & (up_move > 0), up_move, 0) / tr
+    minus_di = np.where((down_move > up_move) & (down_move > 0), down_move, 0) / tr
 
-    # Smooth +DI, -DI and True Range
+    # Ortalama almak için smooth işlemine geç
     tr_smooth = np.convolve(tr, np.ones(period), 'valid')
     plus_di_smooth = np.convolve(plus_di, np.ones(period), 'valid')
     minus_di_smooth = np.convolve(minus_di, np.ones(period), 'valid')
 
-    # Calculate DX and ADX
-    dx = 100 * abs(plus_di_smooth - minus_di_smooth) / (plus_di_smooth + minus_di_smooth)
+    # DX ve ADX hesapla
+    dx = 100 * np.abs(plus_di_smooth - minus_di_smooth) / (plus_di_smooth + minus_di_smooth)
     adx = np.convolve(dx, np.ones(period) / period, 'valid')
-
+    
+    if adx.size == 0:
+        raise ValueError("ADX hesaplanamadı. Veri yetersiz.")
+    
     return adx[-1]
 
 def compute_vwap(close_prices, volumes):
@@ -83,9 +95,22 @@ def compute_vwap(close_prices, volumes):
     return cumulative_price_volume / cumulative_volume
 
 def compute_cci(high, low, close, period=20):
+    # float olarak işlem yaptığınızdan emin olun
+    high = pd.to_numeric(high, errors="coerce")
+    low = pd.to_numeric(low, errors="coerce")
+    close = pd.to_numeric(close, errors="coerce")
+    
+    if high.isnull().any() or low.isnull().any() or close.isnull().any():
+        raise ValueError("Invalid data detected in CCI calculation inputs.")
+
     tp = (high + low + close) / 3  # Typical Price
     sma_tp = tp[-period:].mean()  # Simple Moving Average of TP
     mean_dev = abs(tp[-period:] - sma_tp).mean()  # Mean Deviation
+    
+    if mean_dev == 0:
+        raise ValueError("Mean deviation is zero, cannot calculate CCI.")
+    
     cci = (tp[-1] - sma_tp) / (0.015 * mean_dev)  # CCI Formula
     return cci
+
 

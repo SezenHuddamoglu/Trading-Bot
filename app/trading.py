@@ -184,7 +184,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     log_hold_state(curr_price, indicator)
 
             elif indicator == " Exponential Moving Average":
-                ema = compute_ema(close_prices.values,STOCH_RSI_PERIOD)
+                ema = compute_ema(close_prices.values,upper)
                 print(f"EMA for {coin}: {ema}")
                 if coin_states[coin] == 0 and curr_price > ema:
                     print("EMA: BUY signal triggered")
@@ -282,9 +282,12 @@ def update_price_history(symbol, interval="5m", days=1):
         "Taker Buy Base Asset Volume", "Taker Buy Quote Asset Volume", "Ignore"
     ])
     df["Close"] = pd.to_numeric(df["Close"])
+    df["High"] = pd.to_numeric(df["High"])
+    df["Low"] = pd.to_numeric(df["Low"])
     df["Date"] = pd.to_datetime(df["Open Time"], unit="ms")
     df.set_index("Date", inplace=True)
     return df[["Close", "High", "Low"]]
+
 
 
 def buy_process(curr_price, indicator, coin):
@@ -361,7 +364,7 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and macd < signal_line:
-                trade = sellBacktest(curr_price, coins_held, indicator)
+                trade = sellBacktest(curr_price, coins_held, indicator,curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
                 coins_held = 0
@@ -390,7 +393,7 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
         elif indicator == "Moving Average":
             if i < 20:
                 continue
-            ma = compute_ma(close_prices[:i+1], 20)
+            ma = compute_ma(close_prices[:i+1], upper)
             if state == 0 and curr_price > ma:
                 trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
@@ -407,7 +410,7 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
         elif indicator == "Exponentional Moving Average":
             if i < 20:
                 continue
-            ema = compute_ema(close_prices[:i+1], 20)
+            ema = compute_ema(close_prices[:i+1], upper)
             if state == 0 and curr_price > ema:
                 trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
