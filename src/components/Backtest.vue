@@ -26,8 +26,6 @@
         <UIInput v-model="balance" label="Initial Balance: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'MACD'">
-        <UIInput v-model="upperData" label="High Price:" />
-        <UIInput v-model="lowerData" label="Close Price: " />
         <UIInput v-model="balance" label="InitialBalance: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'Bollinger Bands'">
@@ -53,7 +51,7 @@
         <UIInput v-model="lowerData" label="Weak Trend: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'Volume Weighted Average Price'">
-        <UIInput v-model="lowerData" label="Weak Trend: " />
+
         <UIInput v-model="balance" label="InitialBalance: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'Commodity Channel Index'">
