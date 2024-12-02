@@ -127,6 +127,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
             close_prices = df["Close"]
             high_prices=df["High"]
             low_prices=df["Low"]
+            volumes = df["Volume"]
             curr_price = close_prices.iloc[-1]
             #print(f'state', coin_states[coin] == 0 )
             if indicator == "RSI":
@@ -236,7 +237,18 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     sell_process(curr_price, indicator, coin)
                 else:
                     log_hold_state(curr_price, indicator)
-                    
+
+            elif indicator == "Volume Weighted Average Price":
+                vwap = compute_vwap(close_prices, volumes).iloc[-1]
+                print(f"VWAP for {coin}: {vwap}")
+                if coin_states[coin] == 0 and curr_price < lower * vwap:
+                    print("VWAP: BUY signal triggered")
+                    buy_process(curr_price, indicator, coin)
+                elif coin_states[coin] == 1 and curr_price > upper * vwap:
+                    print("VWAP: SELL signal triggered")
+                    sell_process(curr_price, indicator, coin)
+                else:
+                    log_hold_state(curr_price, indicator)        
                     
             elif indicator == "CCI":
                 cci = compute_cci(high_prices.values, low_prices.values, close_prices.values)
@@ -284,9 +296,10 @@ def update_price_history(symbol, interval="5m", days=1):
     df["Close"] = pd.to_numeric(df["Close"])
     df["High"] = pd.to_numeric(df["High"])
     df["Low"] = pd.to_numeric(df["Low"])
+    df["Volume"] = pd.to_numeric(df["Volume"])
     df["Date"] = pd.to_datetime(df["Open Time"], unit="ms")
     df.set_index("Date", inplace=True)
-    return df[["Close", "High", "Low"]]
+    return df[["Close", "High", "Low", "Volume"]]
 
 
 
@@ -474,6 +487,35 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
                 coins_held = 0
                 state = 0
+        elif indicator == "Volume Weighted Average Price":
+            vwap = compute_vwap(df['Close'], df['Volume'])
+            
+            # VWAP serisinin ilgili zaman dilimindeki değerini al
+            current_vwap = vwap.iloc[i]
+            
+            print(f"VWAP for {coin} at {df.index[i]}: {current_vwap}")
+            
+            # Alım sinyali: Fiyat VWAP'tan düşükse al
+            if state == 0 and curr_price < current_vwap:
+                print("VWAP: BUY signal triggered")
+                trade = buyBacktest(float(curr_price), float(initial_balance), indicator, curr_time)
+                trades.append(trade.dict())  # Pydantic modelden dict'e çevir
+                coins_held = trade.amount
+                initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
+                state = 1
+                
+            # Satış sinyali: Fiyat VWAP'tan yüksekse sat
+            elif state == 1 and curr_price > current_vwap:
+                print("VWAP: SELL signal triggered")
+                trade = sellBacktest(float(curr_price), coins_held, indicator, curr_time)
+                trades.append(trade.dict())
+                initial_balance = trade.deposit  # Satıştan elde edilen bakiye
+                coins_held = 0
+                state = 0
+            
+            else:
+                log_hold_state(curr_price, indicator)
+       
 
     final_balance = coins_held * close_prices.iloc[-1] if coins_held > 0 else initial_balance
     profit = final_balance - 10000
