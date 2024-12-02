@@ -66,6 +66,7 @@ export async function fetchBacktest(params: {
 
     // Gelen verileri mapleme
     const backtestData = {
+      finalBalance: result.finalBalance || 0,
       profit: result.profit || 0,
       trades: Array.isArray(result.trades)
         ? result.trades.map(

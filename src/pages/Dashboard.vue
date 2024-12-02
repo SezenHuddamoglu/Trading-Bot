@@ -9,6 +9,7 @@
       :intervals="intervals"
       :initialBalance="''"
       :totalProfit="totalProfit"
+      :finalBalance="finalBalance"
       :trades="trades"
       @fetch-backtest="handleFetchBacktest"
     />
@@ -64,6 +65,7 @@ export default {
       coins: [],
       tradesByCoin: reactive<{ [key: string]: Trade[] }>({}),
       totalProfit: 0,
+      finalBalance: 0,
       trades: [],
       indicators: [
         'RSI',
@@ -95,6 +97,7 @@ export default {
       console.log('Parameters ', params)
       try {
         const result = await fetchBacktest(params)
+        this.finalBalance = result.finalBalance
         this.totalProfit = result.profit
         this.trades = result.trades
       } catch (error) {
