@@ -11,7 +11,7 @@ def compute_rsi(data, period):
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
     return rsi.iloc[-1]
-
+ 
 # MACD Hesaplama
 def compute_macd(prices, short_window=12, long_window=26, signal_window=9):
     short_ema = prices.ewm(span=short_window, adjust=False).mean()
