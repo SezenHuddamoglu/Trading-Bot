@@ -133,6 +133,7 @@ def update_graph():
     start_trading(coin, indicator, upper, lower, interval)
 
     return {"message": f"{coin} için ticaret algoritması güncellendi ve yeniden başlatıldı"}, 200
+
 @api.route('/backtest', methods=['POST'])
 def backtest():
     """
@@ -188,13 +189,15 @@ def backtest():
     upper = data.get('upper')
     lower = data.get('lower')
     interval = data.get('interval')
-    initialBalance = data.get('balance')
+    initialBalance = data.get('balance')  # Corrected key
 
-    if not (coin and indicator and upper is not None and lower is not None and interval):
-        return {"message": "Eksik parametreler"}, 400
+    # Check if any parameter is missing
+    if not (coin and indicator and upper is not None and lower is not None and interval and initialBalance is not None):
+        return {"message": "Eksik veya geçersiz parametreler"}, 400
 
     try:
-        backtest_result = backtest_strategy(coin, indicator, upper, lower, interval,initialBalance)
+        # Perform backtest
+        backtest_result = backtest_strategy(coin, indicator, upper, lower, interval, initialBalance)
         return jsonify({"result": backtest_result}), 200
     except Exception as e:
         logger.error(f"Backtest error: {e}")
