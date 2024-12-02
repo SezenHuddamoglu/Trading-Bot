@@ -33,7 +33,27 @@
       <div class="input-field" v-if="selectedIndicator === 'Bollinger Bands'">
         <UIInput v-model="upperData" label="Upper Band:" />
         <UIInput v-model="lowerData" label="Lower Band: " />
-        <UIInput v-model="balance" label="InitialBalance: " />
+      </div>
+      <div class="input-field" v-if="selectedIndicator === 'Moving Average'">
+        <UIInput v-model="upperData" label="Period:" />
+      </div>
+      <div class="input-field" v-if="selectedIndicator === 'Exponential Moving Average'">
+        <UIInput v-model="upperData" label="Period:" />
+      </div>
+      <div class="input-field" v-if="selectedIndicator === 'Stochastic RSI'">
+        <UIInput v-model="upperData" label="Upper Bound:" />
+        <UIInput v-model="lowerData" label="Lower Bound: " />
+      </div>
+      <div class="input-field" v-if="selectedIndicator === 'Average Directional Index'">
+        <UIInput v-model="upperData" label="Strong Trend:" />
+        <UIInput v-model="lowerData" label="Weak Trend: " />
+      </div>
+      <div class="input-field" v-if="selectedIndicator === 'Volume Weighted Average Price'">
+        <UIInput v-model="lowerData" label="Weak Trend: " />
+      </div>
+      <div class="input-field" v-if="selectedIndicator === 'Commodity Channel Index'">
+        <UIInput v-model="upperData" label="Overbougth:" />
+        <UIInput v-model="lowerData" label="Oversold: " />
       </div>
 
       <!-- Time Interval Dropdown -->
