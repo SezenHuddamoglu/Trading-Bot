@@ -238,10 +238,8 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     log_hold_state(curr_price, indicator)
                     
                     
-            elif indicator == "Commodity Channel Index":
+            elif indicator == "CCI":
                 cci = compute_cci(high_prices.values, low_prices.values, close_prices.values)
-                print(f"CCI for {coin}: {cci}")
-                cci=float(cci)
                 print(f"CCI for {coin}: {cci}")
                 if coin_states[coin] == 0 and cci < lower:
                     print("CCI: BUY signal triggered")
@@ -251,18 +249,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     sell_process(curr_price, indicator, coin)
                 else:
                     log_hold_state(curr_price, indicator)
-                    
-            elif indicator == "Volume-Weighted Average Price":
-                vwap = compute_vwap(df, interval)
-                print(f"VWAP for {coin}: {vwap}")
-                if coin_states[coin] == 0 and curr_price < vwap:
-                    print("VWAP: BUY signal triggered")
-                    buy_process(curr_price, indicator, coin)
-                elif coin_states[coin] == 1 and curr_price > vwap:
-                    print("VWAP: SELL signal triggered")
-                    sell_process(curr_price, indicator, coin)
-                else:
-                    log_hold_state(curr_price, indicator)
+        
             logging.info(f"Trading Status: Current Price: {curr_price} | Indicator: {indicator} | Deposit: {balance}")
 
             # Belirli bir süre bekle (örneğin, 10 saniye)
@@ -353,14 +340,12 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 continue
             rsi = compute_rsi(close_prices[:i+1], 14)
             if state == 0 and rsi < lower:
-                print("RSI: BUY signal triggered")
                 trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and rsi > upper:
-                print("RSI: SELL signal triggered")
                 trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
@@ -373,17 +358,12 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 continue
             macd, signal_line = compute_macd(close_prices[:i+1])
             if state == 0 and macd > signal_line:
-                print("MACD: BUY signal triggered")
                 trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and macd < signal_line:
-<<<<<<< Updated upstream
-=======
-                print("MACD: SELL signal triggered")
->>>>>>> Stashed changes
                 trade = sellBacktest(curr_price, coins_held, indicator,curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
@@ -398,14 +378,12 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 continue
             upper_band, lower_band = compute_bollinger_bands(close_prices[:i+1], 20)
             if state == 0 and curr_price < lower_band:
-                print("Bollinger Bands: BUY signal triggered")
                 trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and curr_price > upper_band:
-                print("Bollinger Bands: SELL signal triggered")
                 trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
@@ -417,14 +395,12 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 continue
             ma = compute_ma(close_prices[:i+1], upper)
             if state == 0 and curr_price > ma:
-                print("MA: BUY signal triggered")
                 trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and curr_price < ma:
-                print("MA: SELL signal triggered")
                 trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
@@ -436,14 +412,12 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 continue
             ema = compute_ema(close_prices[:i+1], upper)
             if state == 0 and curr_price > ema:
-                print("EMA: BUY signal triggered")
                 trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and curr_price < ema:
-                print("EMA: SELL signal triggered")
                 trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
@@ -455,14 +429,12 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 continue
             stoch_rsi = compute_stochastic_rsi(close_prices[:i+1], 14)
             if state == 0 and stoch_rsi < lower:
-                print("Stochastic RSI: BUY signal triggered")
                 trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and stoch_rsi > upper:
-                print("Stochastic RSI: SELL signal triggered")
                 trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
@@ -474,61 +446,34 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 continue
             adx = compute_adx(high_prices[:i+1], low_prices[:i+1], close_prices[:i+1], 14)
             if state == 0 and adx > upper:
-                print("ADX: BUY signal triggered")
                 trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and adx < lower:
-                print("ADX: SELL signal triggered")
                 trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
                 coins_held = 0
                 state = 0
         
-        elif indicator == "Commodity Channel Index":
+        elif indicator == "CCI":
             if i < 20:
                 continue
             cci = compute_cci(high_prices[:i+1], low_prices[:i+1], close_prices[:i+1], 20)
-            cci = float(cci)
-            print(f"CCI: {cci}, Curr Price: {curr_price}, Balance: {initial_balance}")
             if state == 0 and cci < lower:
-                print("CCI: BUY signal triggered")
-                trade = buyBacktest(float(curr_price), float(initial_balance), indicator, curr_time)
+                trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
                 trades.append(trade.dict())  # Pydantic modelden dict'e çevir
                 coins_held = trade.amount
                 initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
                 state = 1
             elif state == 1 and cci > upper:
-                print("CCI: SELL signal triggered")
-                trade = sellBacktest(float(curr_price),initial_balance, indicator, curr_time)
+                trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
                 trades.append(trade.dict())
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
                 coins_held = 0
                 state = 0
-                
-        elif indicator == "Volume-Weighted Average Price":
-            #vwap = compute_vwap(df, VWAP_TIMEFRAME)
-            vwap = compute_vwap(df['close'], df['volume'])
-            print(f"VWAP for {coin}: {vwap}")
-            if state == 0 and curr_price < vwap:
-                print("VWAP: BUY signal triggered")
-                trade = buyBacktest(float(curr_price), float(initial_balance), indicator, curr_time)
-                trades.append(trade.dict())  # Pydantic modelden dict'e çevir
-                coins_held = trade.amount
-                initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
-                state = 1
-            elif coin_states[coin] == 1 and curr_price > vwap:
-                print("VWAP: SELL signal triggered")
-                trade = sellBacktest(float(curr_price),initial_balance, indicator, curr_time)
-                trades.append(trade.dict())
-                initial_balance = trade.deposit  # Satıştan elde edilen bakiye
-                coins_held = 0
-                state = 0
-            else:
-                log_hold_state(curr_price, indicator)        
 
     final_balance = coins_held * close_prices.iloc[-1] if coins_held > 0 else initial_balance
     profit = final_balance - 10000
