@@ -157,19 +157,22 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     log_hold_state(curr_price, indicator)
 
             elif indicator == "Bollinger Bands":
-                print("type##########",type(close_prices),"#############")
-                #print(close_prices[:i+1].head())  #i is not defined
-                print("#################",df.head(),"#################")
-                upper_band, lower_band = compute_bollinger_bands(df)
-                print(f"Bollinger Bands for {coin}: Lower {lower_band}, Upper {upper_band}")
-                if coin_states[coin]== 0 and curr_price <= lower_band:
-                    print("Bollinger: BUY signal triggered")
-                    buy_process(curr_price, indicator,coin)
-                elif coin_states[coin]== 1 and curr_price >= upper_band:
-                    print("Bollinger: SELL signal triggered")
-                    sell_process(curr_price, indicator,coin)
-                else:
-                    log_hold_state(curr_price, indicator)
+                try:
+                    upper_band, lower_band = compute_bollinger_bands(close_prices, window=20)
+                    print(f"Bollinger Bands for {coin}: Upper Band: {upper_band}, Lower Band: {lower_band}")
+                    if coin_states[coin] == 0 and curr_price < lower_band:
+                        print("Bollinger Bands: BUY signal triggered")
+                        buy_process(curr_price, indicator, coin)
+                    elif coin_states[coin] == 1 and curr_price > upper_band:
+                        print("Bollinger Bands: SELL signal triggered")
+                        sell_process(curr_price, indicator, coin)
+                    else:
+                        log_hold_state(curr_price, indicator)
+                except ValueError as e:
+                    print(f"Error in Bollinger Bands calculation: {e}")
+                    log_hold_state(curr_price, "Bollinger Bands")
+
+
                     
             elif indicator == "Moving Average":
                 period=upper

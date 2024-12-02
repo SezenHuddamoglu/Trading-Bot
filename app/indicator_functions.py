@@ -21,12 +21,15 @@ def compute_macd(prices, short_window=12, long_window=26, signal_window=9):
     return macd.iloc[-1], signal.iloc[-1]
 
 # Bollinger Band Hesaplama
-def compute_bollinger_bands(data, window=20, num_std_dev=2):
-    rolling_mean = data['Close'].rolling(window=window).mean()
-    rolling_std = data['Close'].rolling(window=window).std()
-    upper_band = rolling_mean + (rolling_std * num_std_dev)
-    lower_band = rolling_mean - (rolling_std * num_std_dev)
+def compute_bollinger_bands(close_prices, window=20):
+    if len(close_prices) < window:
+        raise ValueError("Not enough data to calculate Bollinger Bands")
+    rolling_mean = close_prices.rolling(window=window).mean()
+    rolling_std = close_prices.rolling(window=window).std()
+    upper_band = rolling_mean + (rolling_std * 2)
+    lower_band = rolling_mean - (rolling_std * 2)
     return upper_band.iloc[-1], lower_band.iloc[-1]
+
 
 def compute_ma(prices, period):
     return prices[-period:].mean()
