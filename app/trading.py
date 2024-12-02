@@ -6,36 +6,35 @@ import threading
 import logging
 from typing import Dict, List
 import time
-from app.indicator_functions import compute_stochastic_rsi,compute_ichimoku,compute_rsi,compute_macd,compute_ema,compute_ma,compute_bollinger_bands,compute_adx,compute_vwap,compute_cci
+from app.indicator_functions import compute_stochastic_rsi, compute_rsi, compute_macd, compute_ema, compute_ma, compute_adx, compute_vwap, compute_cci
 from app.models import Trade
 
-# Logger yapılandırması
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-# Binance API bilgileri (çevresel değişkenlerden alınmalı)
+
 api_key = "v7d1l6s5reAT0vJViQTzoGup1J1M9zAo1VhxH0HbYEPY3UEVTD8cYk0ooGSj2IB8"
 secret_key = "v0UTEbZvUY3wYvCHiewRka8tcRoit9FanJTyO1bd2C5ax6tWJZa8LkZjtObbtV6c"
 
 
 client = Client(api_key=api_key, api_secret=secret_key)
-# Ticaret parametreleri
+
 INITIAL_BALANCE = 10000  # Başlangıç bakiyesi
-LOSS_THRESHOLD = 0.90  # Zarar durdurma eşiği
-TRADE_INTERVALS = ["1m", "5m", "15m", "30m", "1h"]
-balance = INITIAL_BALANCE   #for live trading
+
+balance = INITIAL_BALANCE  
 eth_coins = 0 
 trade_history = {}
 price_history = {}
 lock = threading.Lock()
 coin_states = {}  # Her coin için state saklanacak
-stop_signals = {}
+stop_flags = {} # Global stop flags
 
 
 
 
 # İşlem kaydı
 def log_trade(action, price, amount, indicator, coin,balance):
-    #global balance
+    
     with lock:
         trade = {
             "action": action,
@@ -61,7 +60,6 @@ def get_current_prices(target_coins):
     """
     Binance API'sinden belirlenen coin'ler için güncel fiyatları ve değişim oranlarını alır.
     """
-    #target_coins = ["BNB", "BTC", "ETH", "DOGE", "SOL", "XRP"]
     all_tickers = client.get_ticker()  # Binance'den tüm coin bilgilerini alır
     filtered_data = [
         {
@@ -82,8 +80,7 @@ def get_trade_history(coin=None):
 
 
 
-# Global stop flags
-stop_flags = {}
+
 
 def reset_trades(coin):
     """Belirli bir coin için işlem geçmişini sıfırla ve önceki işlemi durdur."""
@@ -113,7 +110,6 @@ def start_trading(coin, indicator, upper, lower, interval):
 
 def trading_loop(coin, indicator, upper, lower, interval):
       """Asıl işlem döngüsü."""
-      #print(f"Trading started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}")
     
       try:
         lower = float(lower)
@@ -129,7 +125,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
             low_prices=df["Low"]
             volumes = df["Volume"]
             curr_price = close_prices.iloc[-1]
-            #print(f'state', coin_states[coin] == 0 )
+            
             if indicator == "RSI":
                 RSI_PERIOD = 14
                 rsi = compute_rsi(close_prices.values, RSI_PERIOD)
@@ -142,6 +138,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     sell_process(curr_price, indicator,coin)
                 else:
                     log_hold_state(curr_price, indicator)
+
 
             elif indicator == "MACD":
                 macd, macd_signal = compute_macd(close_prices)
@@ -156,21 +153,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
                 else:
                     log_hold_state(curr_price, indicator)
 
-            elif indicator == "Bollinger Bands":
-                print("type##########",type(close_prices),"#############")
-                #print(close_prices[:i+1].head())  #i is not defined
-                print("#################",df.head(),"#################")
-                upper_band, lower_band = compute_bollinger_bands(df)
-                print(f"Bollinger Bands for {coin}: Lower {lower_band}, Upper {upper_band}")
-                if coin_states[coin]== 0 and curr_price <= lower_band:
-                    print("Bollinger: BUY signal triggered")
-                    buy_process(curr_price, indicator,coin)
-                elif coin_states[coin]== 1 and curr_price >= upper_band:
-                    print("Bollinger: SELL signal triggered")
-                    sell_process(curr_price, indicator,coin)
-                else:
-                    log_hold_state(curr_price, indicator)
-                    
+    
             elif indicator == "Moving Average":
                 period=upper
                 ma = compute_ma(close_prices.values, period)
@@ -184,6 +167,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
                 else:
                     log_hold_state(curr_price, indicator)
 
+
             elif indicator == " Exponential Moving Average":
                 ema = compute_ema(close_prices.values,upper)
                 print(f"EMA for {coin}: {ema}")
@@ -196,24 +180,9 @@ def trading_loop(coin, indicator, upper, lower, interval):
                 else:
                     log_hold_state(curr_price, indicator)
                     
-            # elif indicator == "Ichimoku Cloud":
-            #     conv, base, span_a, span_b = compute_ichimoku(
-            #         close_prices.values, high_prices.values, low_prices.values
-            #     )
-            #     print(f"Ichimoku for {coin}: Conversion: {conv}, Base: {base}, Span A: {span_a}, Span B: {span_b}")
-            #     if coin_states[coin] == 0 and curr_price > max(span_a, span_b):
-            #         print("Ichimoku: BUY signal triggered")
-            #         buy_process(curr_price, indicator, coin)
-            #     elif coin_states[coin] == 1 and curr_price < min(span_a, span_b):
-            #         print("Ichimoku: SELL signal triggered")
-            #         sell_process(curr_price, indicator, coin)
-            #     else:
-            #         log_hold_state(curr_price, indicator)
                     
                     
             elif indicator == "Stochastic RSI":
-                period=upper
-                #period değişkeni alınacak
                 STOCH_RSI_PERIOD=14
                 stoch_rsi = compute_stochastic_rsi(close_prices.values, STOCH_RSI_PERIOD)
                 print(f"Stochastic RSI for {coin}: {stoch_rsi}")
@@ -226,6 +195,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
                 else:
                     log_hold_state(curr_price, indicator)
                     
+
             elif indicator == "Average Directional Index":
                 adx = compute_adx(high_prices.values, low_prices.values, close_prices.values)
                 print(f"ADX for {coin}: {adx}")
@@ -237,6 +207,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
                     sell_process(curr_price, indicator, coin)
                 else:
                     log_hold_state(curr_price, indicator)
+
 
             elif indicator == "Volume Weighted Average Price":
                 vwap = compute_vwap(close_prices, volumes).iloc[-1]
@@ -250,7 +221,8 @@ def trading_loop(coin, indicator, upper, lower, interval):
                 else:
                     log_hold_state(curr_price, indicator)        
                     
-            elif indicator == "CCI":
+
+            elif indicator == "Commodity Channel Index":
                 cci = compute_cci(high_prices.values, low_prices.values, close_prices.values)
                 print(f"CCI for {coin}: {cci}")
                 if coin_states[coin] == 0 and cci < lower:
@@ -264,7 +236,7 @@ def trading_loop(coin, indicator, upper, lower, interval):
         
             logging.info(f"Trading Status: Current Price: {curr_price} | Indicator: {indicator} | Deposit: {balance}")
 
-            # Belirli bir süre bekle (örneğin, 10 saniye)
+            # 10 saniye bekleme
             time.sleep(10)
 
       except Exception as e:
@@ -327,7 +299,7 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
     print(f"Backtest started for {coin} with interval {interval}, Indicator: {indicator}, Lower Limit: {lower}, Upper Limit: {upper}, Initial Balance {balance}")
 
     symbol = f"{coin}USDT"
-    df = update_price_history(symbol, interval, days=120)  # 30 günlük veri
+    df = update_price_history(symbol, interval, days=120)  # 120 günlük veri
     
     if df is None or df.empty:
         raise ValueError("Price history could not be retrieved or is empty.")
@@ -383,25 +355,6 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 coins_held = 0
                 state = 0
         
-        elif indicator == "Bollinger Bands":
-            print(type(close_prices))
-            print(close_prices[:i+1].head())
-
-            if i < 20:
-                continue
-            upper_band, lower_band = compute_bollinger_bands(close_prices[:i+1], 20)
-            if state == 0 and curr_price < lower_band:
-                trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
-                trades.append(trade.dict())  # Pydantic modelden dict'e çevir
-                coins_held = trade.amount
-                initial_balance = 0  # Tüm bakiyeyi kullanarak coin aldık
-                state = 1
-            elif state == 1 and curr_price > upper_band:
-                trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
-                trades.append(trade.dict())
-                initial_balance = trade.deposit  # Satıştan elde edilen bakiye
-                coins_held = 0
-                state = 0
         
         elif indicator == "Moving Average":
             if i < 20:
@@ -420,6 +373,7 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 coins_held = 0
                 state = 0
         
+
         elif indicator == "Exponentional Moving Average":
             if i < 20:
                 continue
@@ -437,6 +391,7 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 coins_held = 0
                 state = 0
         
+
         elif indicator == "Stochastic RSI":
             if i < 14:
                 continue
@@ -454,6 +409,7 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 coins_held = 0
                 state = 0
         
+
         elif indicator == "Average Directional Index":
             if i < 14:
                 continue
@@ -471,6 +427,7 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 coins_held = 0
                 state = 0
         
+
         elif indicator == "Commodity Channel Index":
             if i < 20:
                 continue
@@ -487,6 +444,8 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
                 initial_balance = trade.deposit  # Satıştan elde edilen bakiye
                 coins_held = 0
                 state = 0
+
+
         elif indicator == "Volume Weighted Average Price":
             vwap = compute_vwap(df['Close'], df['Volume'])
             
@@ -520,6 +479,7 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
     final_balance = coins_held * close_prices.iloc[-1] if coins_held > 0 else initial_balance
     profit = final_balance - 10000
     return {"finalBalance": final_balance, "profit": profit, "trades": trades}
+
 
 def buyBacktest(price, balance, indicator, timestamp):
     """Alım işlemi gerçekleştir ve Trade nesnesi oluştur."""

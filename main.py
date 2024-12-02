@@ -2,21 +2,21 @@ from flask import Flask
 from flask_cors import CORS
 from flasgger import Swagger
 from waitress import serve
-from app.api import api  # api.py'deki Blueprint'i import et
+from app.api import api  
 
-# Flask uygulaması başlatılıyor
+
 app = Flask(__name__)
 
-# Swagger'ı etkinleştir
+
 swagger = Swagger(app)
 
-# CORS ayarları
+
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
-# API Blueprint'ini uygulamaya dahil et
+
 app.register_blueprint(api,url_prefix="/api")
 
-# Anasayfa rotası
+
 @app.route("/")
 def home():
     return {"message": "Coin Dashboard API is running"}

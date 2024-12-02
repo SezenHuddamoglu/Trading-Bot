@@ -20,13 +20,6 @@ def compute_macd(prices, short_window=12, long_window=26, signal_window=9):
     signal = macd.ewm(span=signal_window, adjust=False).mean()
     return macd.iloc[-1], signal.iloc[-1]
 
-# Bollinger Band Hesaplama
-def compute_bollinger_bands(data, window=20, num_std_dev=2):
-    rolling_mean = data['Close'].rolling(window=window).mean()
-    rolling_std = data['Close'].rolling(window=window).std()
-    upper_band = rolling_mean + (rolling_std * num_std_dev)
-    lower_band = rolling_mean - (rolling_std * num_std_dev)
-    return upper_band.iloc[-1], lower_band.iloc[-1]
 
 def compute_ma(prices, period):
     return prices[-period:].mean()
@@ -38,12 +31,6 @@ def compute_ema(prices, period):
         ema = (price - ema) * multiplier + ema
     return ema
 
-def compute_ichimoku(prices, high_prices, low_prices):
-    conversion_line = (max(high_prices[-9:]) + min(low_prices[-9:])) / 2
-    base_line = (max(high_prices[-26:]) + min(low_prices[-26:])) / 2
-    leading_span_a = (conversion_line + base_line) / 2
-    leading_span_b = (max(high_prices[-52:]) + min(low_prices[-52:])) / 2
-    return conversion_line, base_line, leading_span_a, leading_span_b
 
 def compute_stochastic_rsi(prices, period=14):
     lowest_low = min(prices[-period:])
@@ -55,32 +42,27 @@ def compute_stochastic_rsi(prices, period=14):
 def compute_adx(high, low, close, period=14):
     import numpy as np
     
-    # Girdi veri uzunluklarını eşitle
     min_length = min(len(high), len(low), len(close))
     high = np.array(high[:min_length])
     low = np.array(low[:min_length])
     close = np.array(close[:min_length])
 
-    # True Range hesaplama
     tr1 = high[1:] - low[1:]
     tr2 = np.abs(high[1:] - close[:-1])
     tr3 = np.abs(low[1:] - close[:-1])
     
     tr = np.maximum.reduce([tr1, tr2, tr3])
     
-    # +DI ve -DI hesapla
     up_move = high[1:] - high[:-1]
     down_move = low[:-1] - low[1:]
     
     plus_di = np.where((up_move > down_move) & (up_move > 0), up_move, 0) / tr
     minus_di = np.where((down_move > up_move) & (down_move > 0), down_move, 0) / tr
 
-    # Ortalama almak için smooth işlemine geç
     tr_smooth = np.convolve(tr, np.ones(period), 'valid')
     plus_di_smooth = np.convolve(plus_di, np.ones(period), 'valid')
     minus_di_smooth = np.convolve(minus_di, np.ones(period), 'valid')
 
-    # DX ve ADX hesapla
     dx = 100 * np.abs(plus_di_smooth - minus_di_smooth) / (plus_di_smooth + minus_di_smooth)
     adx = np.convolve(dx, np.ones(period) / period, 'valid')
     
@@ -98,7 +80,6 @@ def compute_vwap(close_prices, volumes):
 
 
 def compute_cci(high, low, close, period=20):
-    # float olarak işlem yaptığınızdan emin olun
     high = pd.to_numeric(high, errors="coerce")
     low = pd.to_numeric(low, errors="coerce")
     close = pd.to_numeric(close, errors="coerce")
