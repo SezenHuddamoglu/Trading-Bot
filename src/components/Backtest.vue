@@ -51,7 +51,7 @@
         <UIInput v-model="lowerData" label="Weak Trend: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'Volume Weighted Average Price'">
-        <UIInput v-model="lowerData" label="Weak Trend: " />
+
         <UIInput v-model="balance" label="InitialBalance: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'Commodity Channel Index'">
