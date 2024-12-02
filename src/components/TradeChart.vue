@@ -111,30 +111,34 @@ export default {
       this.addMarkers()
     },
     addMarkers() {
+      if (!this.lineSeries) return
+
       const markers = this.trades
         .map((trade) => {
-          if (trade.action === 'buy') {
+          const time = Math.floor(new Date(trade.timestamp).getTime() / 1000) as Time
+
+          if (trade.action.toLowerCase() === 'buy') {
             return {
-              time: Math.floor(new Date(trade.timestamp).getTime() / 1000) as Time, // `time`'ı doğru türde belirledik
+              time,
               position: 'belowBar',
               color: 'green',
-              shape: 'triangleUp',
-              text: 'Buy',
+              shape: 'arrowUp',
+              //text: `Buy`,
             }
-          } else if (trade.action === 'sell') {
+          } else if (trade.action.toLowerCase() === 'sell') {
             return {
-              time: Math.floor(new Date(trade.timestamp).getTime() / 1000) as Time, // `time`'ı doğru türde belirledik
+              time,
               position: 'aboveBar',
               color: 'red',
-              shape: 'triangleDown',
-              text: 'Sell',
+              shape: 'arrowDown', // Bu şekli test edin
+              //text: `Sell`,
             }
           }
           return null
         })
         .filter((marker) => marker !== null)
 
-      this.lineSeries?.setMarkers(markers as any) // `setMarkers` için türü `any` olarak belirleyebiliriz çünkü `markers` dizisi karmaşık tip içeriyor
+      this.lineSeries.setMarkers(markers as any)
     },
   },
   beforeUnmount() {
