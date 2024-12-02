@@ -19,8 +19,6 @@
         <UIInput v-model="lower" label="Lower Bound: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'MACD'">
-        <UIInput v-model="upper" label="High Price:" />
-        <UIInput v-model="lower" label="Close Price: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'Bollinger Bands'">
         <UIInput v-model="upper" label="Upper Band:" />
