@@ -95,6 +95,7 @@ def compute_vwap(close_prices, volumes):
     return cumulative_price_volume / cumulative_volume
 
 def compute_cci(high, low, close, period=20):
+<<<<<<< Updated upstream
     # float olarak işlem yaptığınızdan emin olun
     high = pd.to_numeric(high, errors="coerce")
     low = pd.to_numeric(low, errors="coerce")
@@ -112,5 +113,39 @@ def compute_cci(high, low, close, period=20):
     
     cci = (tp[-1] - sma_tp) / (0.015 * mean_dev)  # CCI Formula
     return cci
+=======
+    print("computecci çalıştı")
+    print(f"high: {type(high)}, low: {type(low)}, close: {type(close)}")
+    # Sayısal olmayan değerleri ve NaN'leri temizleme
+    high = pd.to_numeric(high, errors='coerce')
+    low = pd.to_numeric(low, errors='coerce')
+    close = pd.to_numeric(close, errors='coerce')
+
+    # NaN değerlerini kaldırma
+    high = high.dropna()
+    low = low.dropna()
+    close = close.dropna()
+    data = pd.DataFrame({'High': high, 'Low': low, 'Close': close})
+    data = data.dropna()
+    high, low, close = data['High'], data['Low'], data['Close']
+
+
+
+
+     # Typical Price hesaplama
+    tp = (high + low + close) / 3
+    print("typicalş")
+    # TP'nin SMA'sı (Simple Moving Average)
+    sma_tp = tp.rolling(window=period).mean()  # SMA, pandas'ın rolling ile hesaplanır.
+    print("sma")
+    # Ortalama Sapma (Mean Deviation)
+    mean_dev = tp.rolling(window=period).apply(lambda x: abs(x - x.mean()).mean(), raw=True)
+    print("tmamamama")
+    cci = (tp.iloc[-1] - sma_tp.iloc[-1]) / (0.015 * mean_dev.iloc[-1])
+    print(f"CCI: {cci}, type: {type(cci)}")
+
+    
+    return float(cci)
+>>>>>>> Stashed changes
 
 
