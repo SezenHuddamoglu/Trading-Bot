@@ -23,7 +23,7 @@ export async function fetchCoins() {
 export async function fetchTrades(coin: string) {
   try {
     const response = await api.get(`/api/trades/${coin}`)
-    // console.log('Gelen veri:', response.data)
+    console.log('Gelen veri:', response.data)
 
     const trades = Array.isArray(response.data.trades)
       ? response.data.trades
@@ -36,14 +36,14 @@ export async function fetchTrades(coin: string) {
         amount: number
         timestamp: string
         indicator: string
-        deposit: number
+        balance: number
       }) => ({
         action: trade.action,
         price: trade.price || 0,
         amount: trade.amount || 0,
         timestamp: trade.timestamp || '',
         indicator: trade.indicator || 'N/A',
-        deposit: trade.deposit || 0,
+        deposit: trade.balance || 0,
       }),
     )
   } catch (error) {
