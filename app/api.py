@@ -32,14 +32,18 @@ def get_trades_for_coin(coin):
               items:
                 type: object
                 properties:
-                  timestamp:
+                  action:
                     type: string
-                  trade_type:
+                  amount:
+                    type: number
+                  deposit:
+                    type: number
+                  indicator:
                     type: string
                   price:
                     type: number
-                  quantity:
-                    type: number
+                  timestamp:
+                    type: string
       400:
         description: Invalid coin parameter
     """
@@ -54,10 +58,7 @@ def get_trades():
 
 @api.route("/coins", methods=["GET"])
 def get_coins():
-    
-    from app.trading import get_current_prices
-    target_coins = ["ETH", "BTC", "AVA", "FET", "SOL", "RENDER"]
-    """
+     """
     Get the current prices of the target coins
     ---
     responses:
@@ -71,6 +72,8 @@ def get_coins():
               items:
                 type: object
                 properties:
+                  change:
+                    type: number
                   coin:
                     type: string
                   price:
@@ -78,9 +81,12 @@ def get_coins():
       500:
         description: Internal server error while fetching coin prices
     """
-    prices = get_current_prices(target_coins)
-    logger.info(f"Coins data: {prices}")
-    return jsonify({"coins": prices})
+     from app.trading import get_current_prices
+     target_coins = ["ETH", "BTC", "AVA", "FET", "SOL", "RENDER"]
+   
+     prices = get_current_prices(target_coins)
+     logger.info(f"Coins data: {prices}")
+     return jsonify({"coins": prices})
 
 @api.route('/updateGraph', methods=['POST'])
 def update_graph():
@@ -129,7 +135,7 @@ def update_graph():
     if not (coin and indicator and upper is not None and lower is not None and interval):
         return {"message": "Eksik parametreler"}, 400
 
-    reset_trades(coin)  # Önceki ticareti durdur
+    reset_trades(coin)  
     start_trading(coin, indicator, upper, lower, interval)
 
     return {"message": f"{coin} için ticaret algoritması güncellendi ve yeniden başlatıldı"}, 200
@@ -189,7 +195,7 @@ def backtest():
     upper = data.get('upper')
     lower = data.get('lower')
     interval = data.get('interval')
-    balance = data.get('balance')  # Correct key now
+    balance = data.get('balance') 
 
     # Check if any parameter is missing
     if not (coin and indicator and upper is not None and lower is not None and interval and balance is not None):
