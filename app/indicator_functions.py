@@ -90,9 +90,12 @@ def compute_adx(high, low, close, period=14):
     return adx[-1]
 
 def compute_vwap(close_prices, volumes):
+    if close_prices.empty or volumes.empty:
+        raise ValueError("Close prices or volumes are empty.")
     cumulative_price_volume = (close_prices * volumes).cumsum()
     cumulative_volume = volumes.cumsum()
     return cumulative_price_volume / cumulative_volume
+
 
 def compute_cci(high, low, close, period=20):
     # float olarak işlem yaptığınızdan emin olun
