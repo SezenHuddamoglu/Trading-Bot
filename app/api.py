@@ -3,10 +3,10 @@ import logging
 from app.trading import backtest_strategy, start_trading, reset_trades, get_trade_history
 import pandas as pd
 
-
+# Create a Blueprint for API routes
 api = Blueprint('api', __name__)
 
-# Logger ayarları
+# Set up logger configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
@@ -47,12 +47,16 @@ def get_trades_for_coin(coin):
       400:
         description: Invalid coin parameter
     """
-    trade_history = get_trade_history(coin)
+    trade_history = get_trade_history(coin)  # Fetch trade history for the given coin
     return jsonify({"trades": trade_history})
+
 @api.route("/trades", methods=["GET"])
 def get_trades():
+    """
+    Get the trade history for all coins.
+    """
     from app.trading import get_trade_history
-    trades = get_trade_history()
+    trades = get_trade_history()  # Fetch trade history for all coins
     logger.info(f"Trades data: {trades}")
     return jsonify({"trades": trades})
 
@@ -82,9 +86,8 @@ def get_coins():
         description: Internal server error while fetching coin prices
     """
      from app.trading import get_current_prices
-     target_coins = ["ETH", "BTC", "AVA", "FET", "SOL", "RENDER"]
-   
-     prices = get_current_prices(target_coins)
+     target_coins = ["ETH", "BTC", "AVA", "FET", "SOL", "RENDER"]  # Define target coins
+     prices = get_current_prices(target_coins)  # Fetch current prices
      logger.info(f"Coins data: {prices}")
      return jsonify({"coins": prices})
 
@@ -132,13 +135,14 @@ def update_graph():
     lower = data.get('lower')
     interval = data.get('interval')
 
+    # Validate all required parameters
     if not (coin and indicator and upper is not None and lower is not None and interval):
-        return {"message": "Eksik parametreler"}, 400
+        return {"message": "Missing parameters"}, 400
 
-    reset_trades(coin)  
-    start_trading(coin, indicator, upper, lower, interval)
+    reset_trades(coin)  # Reset trades for the specified coin
+    start_trading(coin, indicator, upper, lower, interval)  # Start trading with updated parameters
 
-    return {"message": f"{coin} için ticaret algoritması güncellendi ve yeniden başlatıldı"}, 200
+    return {"message": f"Trading algorithm updated and restarted for {coin}"}, 200
 
 @api.route('/backtest', methods=['POST'])
 def backtest():
@@ -195,11 +199,11 @@ def backtest():
     upper = data.get('upper')
     lower = data.get('lower')
     interval = data.get('interval')
-    balance = data.get('balance') 
+    balance = data.get('balance')
 
-    # Check if any parameter is missing
+    # Validate all required parameters
     if not (coin and indicator and upper is not None and lower is not None and interval and balance is not None):
-        return {"message": "Eksik veya geçersiz parametreler"}, 400
+        return {"message": "Missing or invalid parameters"}, 400
 
     try:
         # Perform backtest
@@ -207,5 +211,4 @@ def backtest():
         return jsonify({"result": backtest_result}), 200
     except Exception as e:
         logger.error(f"Backtest error: {e}")
-        return {"message": "Backtest sırasında bir hata oluştu"}, 500
-
+        return {"message": "An error occurred during backtesting"}, 500
