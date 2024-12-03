@@ -21,12 +21,12 @@ export default {
       type: String,
       required: true,
     },
-    // options array tipini string[] olarak belirtiyoruz
+
     options: {
-      type: Array as () => string[], // Burada dizi tipi belirtildi
+      type: Array as () => string[],
       required: true,
     },
-    // modelValue için tip belirtiyoruz
+
     modelValue: {
       type: String,
       required: true,
@@ -46,12 +46,10 @@ export default {
 </script>
 
 <style scoped>
-/* Dropdown Container */
 .dropdown-container {
   display: flex;
   flex-direction: column;
 
-  /* Label Styling */
   .dropdown-label {
     margin-bottom: 0.5rem;
 
@@ -60,41 +58,39 @@ export default {
     color: aliceblue;
   }
 
-  /* Select Box Styling */
   .dropdown-select {
     outline: none;
     transition: all 0.3s ease;
     width: 140px;
-    background-color: #2c3338; /* Gri bir arka plan rengi */
-    color: aliceblue; /* Beyaz yazı rengi */
-    border: 1px solid #444; /* Gri kenarlık */
-    border-radius: 4px; /* Hafif yuvarlatılmış kenarlar */
-    padding: 4px; /* İçerik ile kenar boşluğu */
-    font-size: 14px; /* Yazı boyutunu küçült */
+    background-color: #2c3338;
+    color: aliceblue;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 4px;
+    font-size: 14px;
   }
 
   .dropdown select:focus {
-    outline: none; /* Odaklandığında varsayılan çerçeve kaldırılır */
-    border: 1px solid aliceblue; /* Odaklandığında kenarlık beyaz olur */
+    outline: none;
+    border: 1px solid aliceblue;
   }
 
   .dropdown input {
-    width: 100px; /* Genişliği azaltarak daha ince görünmesini sağlayın */
-    height: 30px; /* Yüksekliği azaltın */
-    padding: 4px 8px; /* İçerik ile kenar arasındaki boşluğu küçültün */
-    font-size: 14px; /* Yazı boyutunu küçültün */
-    border: 1px solid #ccc; /* İnce bir kenarlık ekleyin */
-    border-radius: 4px; /* Hafif yuvarlatılmış köşeler */
-    background-color: #1b2126; /* Arka plan rengini aynı temaya uygun hale getirin */
+    width: 100px;
+    height: 30px;
+    padding: 4px 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #1b2126;
     color: aliceblue;
   }
-  /* Option Styling */
+
   .dropdown-option {
     padding: 0.8rem;
     font-size: 1rem;
   }
 
-  /* Hover effect for options */
   .dropdown-select:hover {
     border-color: #007bff;
   }

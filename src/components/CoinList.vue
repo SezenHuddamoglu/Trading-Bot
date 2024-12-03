@@ -13,10 +13,9 @@
         <tr v-for="coin in coins" :key="coin.symbol">
           <td>{{ coin.symbol }}</td>
           <td>{{ (coin.price || 0).toFixed(2) }}</td>
-          <!-- price kontrolü -->
+
           <td :class="{ up: coin.change > 0, down: coin.change < 0 }">
             {{ (coin.change || 0).toFixed(2) }}%
-            <!-- change kontrolü -->
           </td>
         </tr>
       </tbody>
@@ -57,10 +56,10 @@ td {
   text-align: center;
 }
 h2 {
-   color: aliceblue; /* Başlık rengini beyaz yap */
-    font-family: Arial, sans-serif;
-    text-align: start;
-    font-size: 25px;
+  color: aliceblue;
+  font-family: Arial, sans-serif;
+  text-align: start;
+  font-size: 25px;
 }
 th {
   background-color: #f2f2f2;

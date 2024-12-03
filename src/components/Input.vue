@@ -30,7 +30,6 @@ export default {
 </script>
 
 <style scoped>
-/* Input field styling */
 .input-c {
   display: flex;
   flex-direction: column;
@@ -48,17 +47,17 @@ export default {
     outline: none;
     transition: all 0.3s ease;
 
-    background-color: #2c3338; /* Gri bir arka plan rengi */
-    color: aliceblue; /* Beyaz yazı rengi */
-    border: 1px solid #444; /* Gri kenarlık */
-    border-radius: 4px; /* Hafif yuvarlatılmış kenarlar */
-    padding: 4px; /* İçerik ile kenar boşluğu */
-    font-size: 12px; /* Yazı boyutunu küçült */
+    background-color: #2c3338;
+    color: aliceblue;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 4px;
+    font-size: 12px;
   }
 
   .input-field :focus {
-    outline: none; /* Odaklandığında varsayılan çerçeve kaldırılır */
-    border: 1px solid aliceblue; /* Odaklandığında kenarlık beyaz olur */
+    outline: none;
+    border: 1px solid aliceblue;
   }
 
   .input-field::placeholder {

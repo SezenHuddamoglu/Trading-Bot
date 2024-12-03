@@ -10,7 +10,6 @@
           <th>Amount</th>
           <th>Indicators</th>
           <th>Total Deposit</th>
-          <!-- <th>Profit</th> -->
         </tr>
       </thead>
       <tbody>
@@ -19,11 +18,11 @@
           <td :class="{ buy: trade.action === 'Buy', sell: trade.action === 'Sell' }">
             {{ trade.action }}
           </td>
-          <!-- Check if price is defined before using toFixed -->
+
           <td>
             {{ trade.price !== undefined && trade.price !== null ? trade.price.toFixed(2) : 'N/A' }}
           </td>
-          <!-- Check if amount is defined before using toFixed -->
+
           <td>
             {{
               trade.amount !== undefined && trade.amount !== null ? trade.amount.toFixed(4) : 'N/A'
@@ -37,11 +36,6 @@
                 : 'N/A'
             }}
           </td>
-          <!-- <td>
-            {{
-              trade.profit !== undefined && trade.profit !== null ? trade.profit.toFixed(4) : 'N/A'
-            }}
-          </td> -->
         </tr>
       </tbody>
     </table>
