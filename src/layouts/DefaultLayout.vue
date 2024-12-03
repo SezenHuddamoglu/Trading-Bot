@@ -4,11 +4,9 @@
       <div class="header-content">
         <h1>Coin Dashboard</h1>
       </div>
-
     </header>
     <main>
-      <slot/>
-      <!-- Sayfa içeriği buraya yüklenecek -->
+      <slot />
     </main>
     <footer>
       <p>© 2024 Coin Dashboard</p>
@@ -35,15 +33,13 @@ header {
   width: 100%;
 }
 
-/* Sol ve sağdaki logolar için düzen */
 .logos {
   display: flex;
-  gap: 10px; /* Logolar arasında boşluk */
+  gap: 10px;
 }
 
-/* Logo resimlerinin boyut ayarları */
 .logos img {
-  height: 40px; /* Resim yüksekliği */
+  height: 40px;
   width: auto;
 }
 h1 {
@@ -53,8 +49,7 @@ h1 {
 }
 
 footer {
-  /* background-color: #06121e; */
-  background-color: #0B192C;
+  background-color: #0b192c;
   color: whitesmoke;
   text-align: center;
   padding: 1rem;
@@ -63,8 +58,8 @@ footer {
   width: 100%;
 }
 main {
-  background-color:#0B192C;
+  background-color: #0b192c;
   padding: 2rem;
-  margin-bottom: 60px; /* Footer için boşluk */
+  margin-bottom: 60px;
 }
 </style>

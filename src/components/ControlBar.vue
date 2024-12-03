@@ -13,16 +13,13 @@
         v-model="selectedIndicator"
       />
 
-      <!-- Input Field for RSI -->
+      <!-- Input Field for indicators -->
       <div class="input-field" v-if="selectedIndicator === 'RSI'">
         <UIInput v-model="upper" label="Upper Bound:" />
         <UIInput v-model="lower" label="Lower Bound: " />
       </div>
       <div class="input-field" v-if="selectedIndicator === 'MACD'"></div>
-      <div class="input-field" v-if="selectedIndicator === 'Bollinger Bands'">
-        <UIInput v-model="upper" label="Upper Band:" />
-        <UIInput v-model="lower" label="Lower Band: " />
-      </div>
+
       <div class="input-field" v-if="selectedIndicator === 'Moving Average'">
         <UIInput v-model="upper" label="Period:" />
       </div>
@@ -86,19 +83,19 @@ export default {
     indicatorValues: { type: Object, required: true },
     intervals: { type: Array as () => string[], required: true },
     trades: { type: Array as () => Trade[], required: true },
+    defaultSettings: { type: Object, required: true },
   },
   data() {
     return {
-      selectedIndicator: 'RSI',
-      selectedInterval: '5m',
-      upper: this.indicatorValues.upper || 70,
-      lower: this.indicatorValues.lower || 30,
-      localTrades: [], // Coin özelinde trade geçmişi
+      selectedIndicator: this.defaultSettings.indicator || 'RSI',
+      selectedInterval: this.defaultSettings.interval || '5m',
+      upper: this.defaultSettings.upper || 70,
+      lower: this.defaultSettings.lower || 30,
+      localTrades: [],
     }
   },
   methods: {
     start() {
-      console.log(`${this.coin} için trade başlatıldı.`)
       this.updateGraph()
     },
     async updateGraph() {
@@ -129,9 +126,9 @@ export default {
   flex-direction: column;
   color: aliceblue;
   margin-top: 1rem;
-  /*background: linear-gradient(135deg, #2e3b4e, #4f5b6e);*/
+
   h2 {
-    color: white; /* Başlık rengini beyaz yap */
+    color: white;
     font-family: Arial, sans-serif;
     text-align: start;
     font-size: 25px;
@@ -180,9 +177,9 @@ export default {
   .results {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-evenly;
     align-items: flex-start;
-    gap: 20px;
+    /* gap: 20px; */
     margin-top: 20px;
   }
   .results > * {
@@ -195,7 +192,7 @@ export default {
   }
 
   .results > *:last-child {
-    flex: 1; /* TradeHistory'ye daha az genişlik verir */
+    flex: 1;
   }
 
   @media (max-width: 768px) {

@@ -15,7 +15,7 @@
     />
 
     <div class="start-all">
-      <p class="text">Tüm coinler ile trade'i başlatmak için tıklayın</p>
+      <p class="text">Click to start trading with all coins</p>
       <button class="update-button" @click="startAll">Start</button>
     </div>
 
@@ -27,6 +27,9 @@
         :indicator-values="indicatorValues[coin.name]"
         :intervals="intervals"
         :trades="tradesByCoin[coin.name] || []"
+        :defaultSettings="
+          defaultIndicatorSettings[coin.name as keyof typeof defaultIndicatorSettings] || {}
+        "
       />
     </div>
   </div>
@@ -53,6 +56,44 @@ export default {
   components: { CoinList, ControlBar, Backtest },
   data() {
     return {
+      defaultIndicatorSettings: {
+        ETH: {
+          indicator: 'Stochastic RSI',
+          upper: 85,
+          lower: 80,
+          interval: '1h',
+        },
+        BTC: {
+          indicator: 'Moving Average',
+          upper: 50,
+          lower: 0,
+          interval: '1h',
+        },
+        AVA: {
+          indicator: 'MACD',
+          upper: 0,
+          lower: 0,
+          interval: '30m',
+        },
+        SOL: {
+          indicator: 'Stochastic RSI',
+          upper: 70,
+          lower: 30,
+          interval: '1h',
+        },
+        RENDER: {
+          indicator: 'RSI',
+          upper: 50,
+          lower: 40,
+          interval: '30m',
+        },
+        FET: {
+          indicator: 'Commodity Channel Index',
+          upper: 50,
+          lower: 40,
+          interval: '1h',
+        },
+      },
       coinList: [
         { id: 1, name: 'ETH' },
         { id: 2, name: 'BTC' },
@@ -70,7 +111,6 @@ export default {
       indicators: [
         'RSI',
         'MACD',
-        'Bollinger Bands',
         'Moving Average',
         'Exponential Moving Average',
         'Stochastic RSI',
@@ -147,17 +187,16 @@ export default {
 .start-all {
   margin-top: 100px;
   gap: 32px;
-  display: flex; /* Elemanları yan yana yerleştirir */
-  justify-content: flex-end; /* Sağ tarafa hizalar */
-  align-items: center; /* Dikeyde ortalar */
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
   width: 100%;
 
-  /* Container'ın genişliği tam olarak 100% */
   .text {
     color: aliceblue;
     font-size: 16px;
     padding: 4px;
-    margin-right: 20px; /* Metin ile buton arasına daha fazla boşluk ekler */
+    margin-right: 20px;
   }
 
   .update-button {

@@ -19,7 +19,7 @@
         v-model="selectedIndicator"
       />
 
-      <!-- Input Field for RSI -->
+      <!-- Input Fields for indicators -->
       <div class="input-field" v-if="selectedIndicator === 'RSI'">
         <UIInput v-model="upperData" label="Upper Bound:" />
         <UIInput v-model="lowerData" label="Lower Bound: " />
@@ -28,11 +28,7 @@
       <div class="input-field" v-if="selectedIndicator === 'MACD'">
         <UIInput v-model="balance" label="InitialBalance: " />
       </div>
-      <div class="input-field" v-if="selectedIndicator === 'Bollinger Bands'">
-        <UIInput v-model="upperData" label="Upper Band:" />
-        <UIInput v-model="lowerData" label="Lower Band: " />
-        <UIInput v-model="balance" label="InitialBalance: " />
-      </div>
+
       <div class="input-field" v-if="selectedIndicator === 'Moving Average'">
         <UIInput v-model="upperData" label="Period:" />
         <UIInput v-model="balance" label="InitialBalance: " />
@@ -88,7 +84,6 @@ import Dropdown from './Dropdown.vue'
 import UIInput from './Input.vue'
 
 import TradeChart from './TradeChart.vue'
-//import TradeHistory from './TradeHistory.vue'
 import { Trade } from '../types/Trade'
 
 export default {
@@ -97,7 +92,6 @@ export default {
     Dropdown,
     UIInput,
     TradeChart,
-    // TradeHistory,
   },
   props: {
     coinList: { type: Array as () => string[], required: true },
@@ -105,7 +99,6 @@ export default {
     upper: { type: String, required: true },
     lower: { type: String, required: true },
     intervals: { type: Array as () => string[], required: true },
-    //trades: { type: Array as () => object[], required: true },
     initialBalance: { type: String, required: true },
     totalProfit: Number,
     finalBalance: Number,
@@ -118,7 +111,6 @@ export default {
       selectedInterval: '5m',
       upperData: 70,
       lowerData: 30,
-      localTrades: [], // Coin özelinde trade geçmişi
       balance: 10000,
     }
   },
@@ -131,15 +123,13 @@ export default {
         balance: this.balance,
         interval: this.selectedInterval,
         lower: this.lowerData,
-        upper: this.upperData, // upperData doğru alan olmalı
-        // lowerData doğru alan olmalı
-        // initialBalance beklenen ad
+        upper: this.upperData,
       }
       this.$emit('fetch-backtest', params)
     },
   },
   mounted() {
-    //this.startBacktest()
+    this.startBacktest()
   },
 }
 </script>
@@ -152,7 +142,7 @@ export default {
   margin-top: 100px;
 
   h2 {
-    color: aliceblue; /* Başlık rengini beyaz yap */
+    color: aliceblue;
     font-family: Arial, sans-serif;
     text-align: start;
     font-size: 25px;
@@ -193,48 +183,7 @@ export default {
       flex-direction: row;
       gap: 8px;
     }
-    .input-field input {
-      background-color: #2c3338; /* Gri bir arka plan rengi */
-      color: aliceblue; /* Beyaz yazı rengi */
-      border: 1px solid #444; /* Gri kenarlık */
-      border-radius: 4px; /* Hafif yuvarlatılmış kenarlar */
-      padding: 4px; /* İçerik ile kenar boşluğu */
-      font-size: 12px; /* Yazı boyutunu küçült */
-    }
 
-    .input-field label {
-      font-size: 14px;
-      margin-right: 4px;
-      color: aliceblue;
-    }
-    .input-field input:focus,
-    .dropdown select:focus {
-      outline: none; /* Odaklandığında varsayılan çerçeve kaldırılır */
-      border: 1px solid aliceblue; /* Odaklandığında kenarlık beyaz olur */
-    }
-    .dropdown select {
-      background-color: #2c3338; /* Gri bir arka plan rengi */
-      color: aliceblue; /* Beyaz yazı rengi */
-      border: 1px solid #444; /* Gri kenarlık */
-      border-radius: 4px; /* Hafif yuvarlatılmış kenarlar */
-      padding: 4px; /* İçerik ile kenar boşluğu */
-      font-size: 14px; /* Yazı boyutunu küçült */
-    }
-    .dropdown input {
-      width: 100px; /* Genişliği azaltarak daha ince görünmesini sağlayın */
-      height: 30px; /* Yüksekliği azaltın */
-      padding: 4px 8px; /* İçerik ile kenar arasındaki boşluğu küçültün */
-      font-size: 14px; /* Yazı boyutunu küçültün */
-      border: 1px solid #ccc; /* İnce bir kenarlık ekleyin */
-      border-radius: 4px; /* Hafif yuvarlatılmış köşeler */
-      background-color: #1b2126; /* Arka plan rengini aynı temaya uygun hale getirin */
-      color: aliceblue;
-    }
-    .dropdown label {
-      font-size: 14px;
-      margin-right: 4px;
-      color: aliceblue;
-    }
     .graph-area {
       margin-top: 1rem;
     }
@@ -266,7 +215,7 @@ export default {
       }
     }
     .chart {
-      width: 1200px;
+      width: 1400px;
     }
   }
 }

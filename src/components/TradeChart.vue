@@ -13,7 +13,7 @@ export default {
   name: 'TradeChart',
   props: {
     trades: {
-      type: Array as () => Trade[], // `trades`'in doğru türü belirtildi
+      type: Array as () => Trade[],
       required: true,
     },
   },
@@ -44,7 +44,7 @@ export default {
         width: container.clientWidth,
         height: container.clientHeight,
         layout: {
-          background: '#fff', // Arka plan rengi için doğru kullanım
+          background: '#fff',
           textColor: '#d1d4dc',
         },
         crosshair: {
@@ -91,18 +91,9 @@ export default {
     },
     updateChart() {
       if (!this.lineSeries) return
-      //console.log('Chart initialized:', this.chart)
-      //console.log('Line Series:', this.lineSeries)
 
-      // console.log('Time',this.trades.map(trade => ({
-      //   time: Math.floor(new Date(trade.timestamp).getTime() / 1000),
-      //   value: trade.price
-      // })))
-      // console.log('Trades:', this.trades)
-
-      // `trade`'in türünü Trade olarak belirledik ve doğru türde zaman verisi kullandık
       const data: LineData<Time>[] = this.trades.map((trade) => ({
-        time: Math.floor(new Date(trade.timestamp).getTime() / 1000) as Time, // `time` değerini doğru türde belirledik
+        time: Math.floor(new Date(trade.timestamp).getTime() / 1000) as Time,
         value: trade.price,
       }))
 
@@ -123,15 +114,13 @@ export default {
               position: 'belowBar',
               color: 'green',
               shape: 'arrowUp',
-              //text: `Buy`,
             }
           } else if (trade.action.toLowerCase() === 'sell') {
             return {
               time,
               position: 'aboveBar',
               color: 'red',
-              shape: 'arrowDown', // Bu şekli test edin
-              //text: `Sell`,
+              shape: 'arrowDown',
             }
           }
           return null
