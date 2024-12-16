@@ -366,6 +366,7 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
         elif indicator == "Moving Average":
             if i < 20:
                 continue
+            upper = int(upper)
             ma = compute_ma(close_prices[:i+1], upper)  # Compute Moving Average
             if state == 0 and curr_price > ma:  # Buy when current price is above Moving Average
                 trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
@@ -434,19 +435,30 @@ def backtest_strategy(coin, indicator, upper, lower, interval, balance):
         elif indicator == "Commodity Channel Index":
             if i < 20:
                 continue
-            cci = compute_cci(high_prices[:i+1], low_prices[:i+1], close_prices[:i+1], 20)  # Compute CCI
-            if state == 0 and cci < lower:  # Buy when CCI is below lower threshold
-                trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
-                trades.append(trade.dict())  # Store trade as a dictionary
-                coins_held = trade.amount
-                initial_balance = 0  # Use all balance to buy coins
-                state = 1
-            elif state == 1 and cci > upper:  # Sell when CCI is above upper threshold
-                trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
-                trades.append(trade.dict())  # Store trade as a dictionary
-                initial_balance = trade.deposit  # Update balance from the sale
-                coins_held = 0
-                state = 0
+            
+
+            try:
+                cci = compute_cci(high_prices, low_prices, close_prices, 20)
+                print("CCI Value:", cci)
+            except Exception as e:
+                print(f"CCI Calculation Error: {e}")
+
+
+            try:
+                if state == 0 and cci < lower:  # Buy when CCI is below lower threshold
+                    trade = buyBacktest(curr_price, initial_balance, indicator, curr_time)
+                    trades.append(trade.dict())  # Store trade as a dictionary
+                    coins_held = trade.amount
+                    initial_balance = 0  # Use all balance to buy coins
+                    state = 1
+                elif state == 1 and cci > upper:  # Sell when CCI is above upper threshold
+                    trade = sellBacktest(curr_price, coins_held, indicator, curr_time)
+                    trades.append(trade.dict())  # Store trade as a dictionary
+                    initial_balance = trade.deposit  # Update balance from the sale
+                    coins_held = 0
+                    state = 0
+            except Exception as e:
+                print(f"Trade Execution Error: {e}")        
         
         elif indicator == "Volume Weighted Average Price":
             vwap = compute_vwap(df['Close'], df['Volume'])  # Compute VWAP
