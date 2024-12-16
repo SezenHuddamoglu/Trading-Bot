@@ -1,7 +1,7 @@
 <template>
-  <div class="control-bar-c">
+  <div class="control-bar-container">
     <h2>Control</h2>
-    <div class="bar">
+    <div class="control-bar">
       <span class="coin-name">{{ coin }}</span>
 
       <!-- Indicator Dropdown -->
@@ -14,32 +14,33 @@
       />
 
       <!-- Input Field for indicators -->
-      <div class="input-field" v-if="selectedIndicator === 'RSI'">
-        <UIInput v-model="upper" label="Upper Bound:" />
-        <UIInput v-model="lower" label="Lower Bound: " />
-      </div>
-      <div class="input-field" v-if="selectedIndicator === 'MACD'"></div>
-
-      <div class="input-field" v-if="selectedIndicator === 'Moving Average'">
-        <UIInput v-model="upper" label="Period:" />
-      </div>
-      <div class="input-field" v-if="selectedIndicator === 'Exponential Moving Average'">
-        <UIInput v-model="upper" label="Period:" />
-      </div>
-      <div class="input-field" v-if="selectedIndicator === 'Stochastic RSI'">
-        <UIInput v-model="upper" label="Upper Bound:" />
-        <UIInput v-model="lower" label="Lower Bound: " />
-      </div>
-      <div class="input-field" v-if="selectedIndicator === 'Average Directional Index'">
-        <UIInput v-model="upper" label="Strong Trend:" />
-        <UIInput v-model="lower" label="Weak Trend: " />
-      </div>
-      <div class="input-field" v-if="selectedIndicator === 'Volume Weighted Average Price'">
-        <UIInput v-model="lower" label="Weak Trend: " />
-      </div>
-      <div class="input-field" v-if="selectedIndicator === 'Commodity Channel Index'">
-        <UIInput v-model="upper" label="Overbougth:" />
-        <UIInput v-model="lower" label="Oversold: " />
+      <div class="input-fields">
+        <div v-if="selectedIndicator === 'RSI'">
+          <UIInput v-model="upper" label="Upper Bound:" />
+          <UIInput v-model="lower" label="Lower Bound: " />
+        </div>
+        <div v-if="selectedIndicator === 'MACD'"></div>
+        <div v-if="selectedIndicator === 'Moving Average'">
+          <UIInput v-model="upper" label="Period:" />
+        </div>
+        <div v-if="selectedIndicator === 'Exponential Moving Average'">
+          <UIInput v-model="upper" label="Period:" />
+        </div>
+        <div v-if="selectedIndicator === 'Stochastic RSI'">
+          <UIInput v-model="upper" label="Upper Bound:" />
+          <UIInput v-model="lower" label="Lower Bound: " />
+        </div>
+        <div v-if="selectedIndicator === 'Average Directional Index'">
+          <UIInput v-model="upper" label="Strong Trend:" />
+          <UIInput v-model="lower" label="Weak Trend: " />
+        </div>
+        <div v-if="selectedIndicator === 'Volume Weighted Average Price'">
+          <UIInput v-model="lower" label="Weak Trend: " />
+        </div>
+        <div v-if="selectedIndicator === 'Commodity Channel Index'">
+          <UIInput v-model="upper" label="Overbought:" />
+          <UIInput v-model="lower" label="Oversold: " />
+        </div>
       </div>
 
       <!-- Time Interval Dropdown -->
@@ -51,9 +52,10 @@
         v-model="selectedInterval"
       />
 
-      <!-- Update Graph Button -->
-      <button class="update-button" @click="updateGraph">Start</button>
+      <!-- Start Button -->
+      <button class="start-button" @click="updateGraph">Start</button>
     </div>
+
     <div class="results">
       <!-- Price Chart and Trade History -->
       <TradeChart :trades="trades" />
@@ -119,79 +121,91 @@ export default {
   },
 }
 </script>
-
 <style>
-.control-bar-c {
-  display: flex;
-  flex-direction: column;
-  color: aliceblue;
-  margin-top: 1rem;
+.control-bar-container {
+  padding: 20px;
+  color: #fff;
+  width: 100%;
 
   h2 {
-    color: white;
-    font-family: Arial, sans-serif;
-    text-align: start;
-    font-size: 25px;
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #f1f1f1;
+    font-weight: 600;
   }
-  .bar {
+
+  .control-bar {
     display: flex;
-    gap: 16px;
-    margin-bottom: 1rem;
-    padding: 1rem;
-    background-color: #1b2126;
-    color: aliceblue;
-    border-radius: 8px;
-    text-align: center;
     flex-direction: row;
-    justify-content: space-evenly;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 1.5rem;
+    padding: 20px;
+    background-color: #2c3e50;
+    border-radius: 10px;
     align-items: center;
-
-    height: 40px;
-    .coin-name {
-      font-size: 16px;
-      font-weight: 600;
-      color: #f0b90b;
-    }
-    button {
-      background: radial-gradient(circle, #434f63, #2e3842);
-      color: aliceblue;
-      width: 100px;
-      height: 40px;
-      border-radius: 16px;
-      border: 1.5px solid aliceblue;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 4px;
-      cursor: pointer;
-    }
-    .input-field {
-      display: flex;
-      flex-direction: row;
-      gap: 8px;
-    }
-
-    .graph-area {
-      margin-top: 1rem;
-    }
   }
+
+  .coin-name {
+    font-size: 18px;
+    color: #f0b90b;
+    font-weight: 600;
+    padding-left: 20px;
+  }
+
+  .dropdown {
+    background-color: #34495e;
+    border: none;
+    color: #ecf0f1;
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 6px;
+    width: 200px;
+  }
+
+  .input-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 200px;
+  }
+
+  .input-fields .input-field {
+    margin-top: 10px;
+  }
+
+  .start-button {
+    background: radial-gradient(circle, #434f63, #2e3842);
+    color: white;
+    border-radius: 8px;
+    border: 1.5px solid aliceblue;
+    padding: 10px 20px;
+    font-size: 16px;
+    margin-right: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      background-color 0.3s,
+      transform 0.2s;
+  }
+
+  .start-button:hover {
+    background-color: #3e8375;
+    transform: scale(1.05);
+  }
+
+  .start-button:active {
+    transform: scale(0.98);
+  }
+
   .results {
     display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-    align-items: flex-start;
-    /* gap: 20px; */
-    margin-top: 20px;
-  }
-  .results > * {
-    flex: 1;
-    max-width: 45%;
-  }
-  .results > *:first-child {
-    flex: 2;
-    min-width: 60%;
+    gap: 16px;
+    justify-content: space-between;
+    margin-top: 30px;
   }
 
-  .results > *:last-child {
+  .results > * {
     flex: 1;
   }
 

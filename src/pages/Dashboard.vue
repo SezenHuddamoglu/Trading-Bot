@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="container">
     <CoinList :coins="coins" />
     <Backtest
       :coinList="backtestCoins"
@@ -16,7 +16,7 @@
 
     <div class="start-all">
       <p class="text">Click to start trading with all coins</p>
-      <button class="update-button" @click="startAll">Start</button>
+      <button class="startAll-button" @click="startAll">Start</button>
     </div>
 
     <div v-for="coin in coinList" :key="coin.name" class="coin-section">
@@ -34,7 +34,6 @@
     </div>
   </div>
 </template>
-
 <script lang="ts">
 import { fetchBacktest, fetchCoins, fetchTrades } from '../services/api'
 import CoinList from '../components/CoinList.vue'
@@ -93,6 +92,12 @@ export default {
           lower: 40,
           interval: '1h',
         },
+        AVAX: {
+          indicator: 'RSI',
+          upper: 70,
+          lower: 30,
+          interval: '1h',
+        },
       },
       coinList: [
         { id: 1, name: 'ETH' },
@@ -101,8 +106,9 @@ export default {
         { id: 4, name: 'SOL' },
         { id: 5, name: 'RENDER' },
         { id: 6, name: 'FET' },
+        { id: 7, name: 'AVAX' },
       ],
-      backtestCoins: ['ETH', 'BTC', 'AVA', 'SOL', 'RENDER', 'FET'],
+      backtestCoins: ['ETH', 'BTC', 'AVA', 'SOL', 'RENDER', 'FET', 'AVAX'],
       coins: [],
       tradesByCoin: reactive<{ [key: string]: Trade[] }>({}),
       totalProfit: 0,
@@ -127,9 +133,10 @@ export default {
         SOL: { upper: 70, lower: 30 },
         RENDER: { upper: 70, lower: 30 },
         FET: { upper: 70, lower: 30 },
+        AVAX: { upper: 70, lower: 30 },
       }),
       intervalId: null as number | null,
-      intervals: ['1m', '5m', '15m', '30m', '45m', '1h'],
+      intervals: ['1m', '5m', '15m', '30m', '45m', '1h', '1d'],
     }
   },
   methods: {
@@ -181,36 +188,49 @@ export default {
 </script>
 
 <style>
-.coin-section {
-  margin-bottom: 1rem;
-}
-.start-all {
-  margin-top: 100px;
-  gap: 32px;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  width: 100%;
+.container {
+  padding: 20px;
 
-  .text {
-    color: aliceblue;
-    font-size: 16px;
-    padding: 4px;
-    margin-right: 20px;
+  .coin-section {
+    margin-bottom: 2rem;
   }
 
-  .update-button {
-    background-color: aliceblue;
-    color: #06121e;
-    width: 200px;
-    height: 50px;
-    border-radius: 16px;
-    border: 1.5px solid aliceblue;
-    text-align: center;
+  .start-all {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+    margin-top: 40px;
+  }
+
+  .text {
     font-size: 18px;
+    color: #a9a9a9;
     font-weight: 600;
-    padding: 10px 20px;
+  }
+
+  .startAll-button {
+    background-color: #28a745;
+    color: white;
+    width: 180px;
+    height: 45px;
+    border-radius: 8px;
+    border: 1px solid #28a745;
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
+    transition:
+      background-color 0.3s,
+      transform 0.2s;
+  }
+
+  .start-button:hover {
+    background-color: #218838;
+    transform: scale(1.05);
+  }
+
+  .start-button:active {
+    transform: scale(0.98);
   }
 }
 </style>
