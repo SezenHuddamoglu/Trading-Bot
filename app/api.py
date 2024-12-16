@@ -86,7 +86,7 @@ def get_coins():
         description: Internal server error while fetching coin prices
     """
      from app.trading import get_current_prices
-     target_coins = ["ETH", "BTC", "AVA", "FET", "SOL", "RENDER"]  # Define target coins
+     target_coins = ["ETH", "BTC", "AVA", "FET", "SOL", "RENDER", 'AVAX']  # Define target coins
      prices = get_current_prices(target_coins)  # Fetch current prices
      logger.info(f"Coins data: {prices}")
      return jsonify({"coins": prices})
@@ -200,7 +200,7 @@ def backtest():
     lower = data.get('lower')
     interval = data.get('interval')
     balance = data.get('balance')
-
+  
     # Validate all required parameters
     if not (coin and indicator and upper is not None and lower is not None and interval and balance is not None):
         return {"message": "Missing or invalid parameters"}, 400

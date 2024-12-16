@@ -51,7 +51,12 @@ def compute_ma(prices, period):
     Returns:
     - The SMA value.
     """
-    return prices[-period:].mean()
+   
+    if isinstance(period, float):
+        period = int(period)
+    
+    return sum(prices[-period:]) / period
+
 
 def compute_ema(prices, period):
     """
@@ -81,11 +86,20 @@ def compute_stochastic_rsi(prices, period=14):
     Returns:
     - The Stochastic RSI value.
     """
+    if len(prices) < period:
+        raise ValueError(f"Yeterli veri yok. İstenen dönem: {period}, Mevcut veri: {len(prices)}")
+
     lowest_low = min(prices[-period:])  # Lowest RSI in the period
     highest_high = max(prices[-period:])  # Highest RSI in the period
     current_rsi = prices[-1]  # Current RSI value
-    stochastic_rsi = (current_rsi - lowest_low) / (highest_high - lowest_low) * 100  # Stochastic RSI formula
+
+    denominator = highest_high - lowest_low
+    if denominator == 0:
+        return 50  
+
+    stochastic_rsi = (current_rsi - lowest_low) / denominator * 100
     return stochastic_rsi
+
 
 def compute_adx(high, low, close, period=14):
     """
@@ -148,36 +162,46 @@ def compute_vwap(close_prices, volumes):
 import pandas as pd
 import numpy as np
 
+
 def compute_cci(high, low, close, period=20):
     """
-    Compute the Commodity Channel Index (CCI).
+    Commodity Channel Index (CCI) hesaplama fonksiyonu.
     
-    Parameters:
-    - high: High prices.
-    - low: Low prices.
-    - close: Close prices.
-    - period: The period for the CCI calculation.
-    
-    Returns:
-    - The latest CCI value.
+    Parametreler:
+        - high: High fiyatlar (list veya pd.Series).
+        - low: Low fiyatlar (list veya pd.Series).
+        - close: Close fiyatlar (list veya pd.Series).
+        - period: CCI hesaplama periyodu (default: 20).
+
+    Geri Dönüş:
+        - Son hesaplanan CCI değeri (float).
     """
-    # Verileri Pandas Series'e dönüştür
-    high = pd.Series(pd.to_numeric(high, errors="coerce"))
-    low = pd.Series(pd.to_numeric(low, errors="coerce"))
-    close = pd.Series(pd.to_numeric(close, errors="coerce"))
-    
-    # Verilerde boş değerler olup olmadığını kontrol et
-    if high.isnull().any() or low.isnull().any() or close.isnull().any():
-        raise ValueError("Invalid data detected in CCI calculation inputs.")
-    
-    tp = (high + low + close) / 3  # Typical Price
-    sma_tp = tp[-period:].mean()  # Simple Moving Average of Typical Price
-    mean_dev = abs(tp[-period:] - sma_tp).mean()  # Mean Deviation
-    
-    if mean_dev == 0:
-        raise ValueError("Mean deviation is zero, cannot calculate CCI.")
-    
-    cci = (tp[-1] - sma_tp) / (0.015 * mean_dev)  # CCI formula
-    return cci
+    try:
+        # Girdileri Pandas Series'e çevir
+        high = pd.Series(high, dtype="float64")
+        low = pd.Series(low, dtype="float64")
+        close = pd.Series(close, dtype="float64")
 
+        # Yeterli veri kontrolü
+        if len(high) < period or len(low) < period or len(close) < period:
+            raise ValueError("CCI hesaplamak için yeterli veri yok.")
+        
+        # Typical Price hesaplama
+        tp = (high + low + close) / 3
 
+        # SMA (Simple Moving Average) hesaplama
+        sma_tp = tp.rolling(window=period).mean()
+
+        # Mean Deviation manuel hesaplama
+        mean_dev = tp.rolling(window=period).apply(
+            lambda x: (abs(x - x.mean())).mean(), raw=True
+        )
+
+        # Son CCI hesaplama
+        cci = (tp - sma_tp) / (0.015 * mean_dev)
+
+        # Son CCI değerini döndür
+        return cci.iloc[-1]
+    
+    except Exception as e:
+        raise ValueError(f"CCI hesaplama sırasında hata: {e}")
