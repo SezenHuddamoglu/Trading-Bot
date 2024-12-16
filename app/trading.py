@@ -38,6 +38,7 @@ price_history = {}  # Historical price data for each coin
 lock = threading.Lock()  # Lock to ensure thread safety
 coin_states = {}  # Keeps track of each coin's state (buy/sell)
 stop_flags = {}  # Flags to stop trading threads
+coin_data = {} 
 
 # Record a trade (buy/sell)
 def log_trade(action, price, amount, indicator, coin, balance):
@@ -95,9 +96,12 @@ threads = {}  # Dictionary to manage trading threads
 
 # Start a trading loop for a specific coin
 def start_trading(coin, indicator, upper, lower, interval):
-    global stop_flags, threads
+    global stop_flags, threads, coin_data
     if coin not in coin_states:
         coin_states[coin] = 0  # Initialize coin state
+    if coin not in coin_data:
+        coin_data[coin] = {'balance': balance, 'amount': 0}  # Örneğin 1000 USDT ile başlatılıyor
+
 
     # Stop any existing thread for this coin
     if coin in threads and threads[coin].is_alive():
@@ -279,20 +283,33 @@ def update_price_history(symbol, interval="5m", days=1):
 
 # Functions to handle buy and sell processes
 def buy_process(curr_price, indicator, coin):
-    global balance, eth_coins
-    num_coins_to_buy = balance / curr_price
-    eth_coins += num_coins_to_buy
-    balance = 0  # Use entire balance for purchase
-    log_trade("Buy", curr_price, num_coins_to_buy, indicator, coin, balance)
-    coin_states[coin] = 1  # Waiting for SELL signal
+    global coin_data  
+
+    
+    coin_balance = coin_data[coin]['balance']
+    coin_amount = coin_data[coin]['amount']
+
+    num_coins_to_buy = coin_balance / curr_price
+    coin_data[coin]['amount'] += num_coins_to_buy  
+    coin_data[coin]['balance'] = 0  # Use entire balance for purchase
+ 
+    log_trade("Buy", curr_price, num_coins_to_buy, indicator, coin, coin_data[coin]['balance'])
+    coin_states[coin] = 1   # Waiting for SELL signal
 
 def sell_process(curr_price, indicator, coin):
-    global balance, eth_coins
-    profit = eth_coins * curr_price
-    balance += profit
-    eth_coins = 0
-    log_trade("Sell", curr_price, eth_coins, indicator, coin, balance)
+    global coin_data  
+
+   
+    coin_balance = coin_data[coin]['balance']
+    coin_amount = coin_data[coin]['amount']
+
+  
+    profit = coin_amount * curr_price
+    coin_data[coin]['balance'] += profit  
+    coin_data[coin]['amount'] = 0  
+    log_trade("Sell", curr_price, coin_data[coin]['amount'], indicator, coin, coin_data[coin]['balance'])
     coin_states[coin] = 0  # Waiting for BUY signal
+
 
 
 def backtest_strategy(coin, indicator, upper, lower, interval, balance):
